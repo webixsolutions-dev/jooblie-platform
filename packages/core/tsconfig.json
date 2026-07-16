@@ -1,0 +1,4 @@
+{
+  "extends": "@jooblie/config/tsconfig.base.json",
+  "include": ["src"]
+}

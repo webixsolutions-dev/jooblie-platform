@@ -1,0 +1,22 @@
+/** @type {import("tailwindcss").Config} */
+const preset = {
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: "hsl(var(--color-primary) / <alpha-value>)",
+        secondary: "hsl(var(--color-secondary) / <alpha-value>)",
+        accent: "hsl(var(--color-accent) / <alpha-value>)",
+        background: "hsl(var(--color-background) / <alpha-value>)",
+        foreground: "hsl(var(--color-foreground) / <alpha-value>)",
+        muted: "hsl(var(--color-muted) / <alpha-value>)",
+        border: "hsl(var(--color-border) / <alpha-value>)",
+      },
+    },
+  },
+};
+
+export default preset;
