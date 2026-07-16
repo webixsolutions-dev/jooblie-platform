@@ -1,5 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    ".github/workflows/**",
+    ".npmrc",
+    ".nvmrc",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "scripts/**"
+  ],
   "tasks": {
     "lint": {
       "dependsOn": ["^build"]
