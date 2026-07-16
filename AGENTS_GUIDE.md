@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 0.3 (CI DB gate) — IN PROGRESS
+- **Phase:** 0.3 (CI DB gate) — IMPLEMENTATION + ACCEPTANCE CHECKS COMPLETE; SECOND-HUMAN REVIEW/MERGE PENDING
 - **Previous slice:** 0.2 CI accepted; repository-admin hardening is tracked separately by the repository owner
-- **Next slice:** 1.1 (Base migrations), only after 0.3 is verified
+- **Next slice:** 1.1 (Base migrations), after PR #2 receives the mandatory R4 second-human review and is merged
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -40,7 +40,9 @@
 - Supabase CLI is exact-pinned at `2.109.1`; GitHub Actions uses official `supabase/setup-cli@v3`.
 - CI detects database-relevant paths, starts a fresh local Postgres container, runs `db reset`, checks generated-type drift, and invokes the RLS harness.
 - Local machine has no Docker-compatible runtime, so the real `db start`/`db reset` acceptance proof must run on the GitHub Actions Ubuntu runner. CLI version and zero-test harness are locally verified.
-- Phase 0.3 stale-types negative test passed as designed on PR #2: local DB start/reset succeeded, then `Database gates` failed only on the placeholder type diff. The CI-generated types are now committed; final green rerun is pending.
+- Phase 0.3 stale-types negative test passed as designed on PR #2: local DB start/reset succeeded, then `Database gates` failed only on the placeholder type diff.
+- Final PR #2 run is green: database change detection 3s, Quality gates 47s, Database gates 3m03s. Database start, migration reset, generated-type match, and zero-test RLS harness all passed.
+- PR #2 remains draft because CI changes are R4-risky and require mandatory second-human review before merge.
 - `.github/workflows/ci.yml` implements the Phase 0.2 PR pipeline: frozen install, affected lint/typecheck, site-registry contract check, and affected builds. `workflow_dispatch` runs the full monorepo.
 - Root CI/config/script files are Turborepo global dependencies, so a root-only PR (including the initial CI PR) verifies all workspaces instead of selecting zero tasks.
 - Local verification passed on 2026-07-17: frozen install; affected-mode selected all workspaces; 25/25 lint+typecheck tasks; site registry (7 public sites + admin); 11/11 build tasks; workflow YAML parse; `git diff --check`.
