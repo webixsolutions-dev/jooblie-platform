@@ -1,0 +1,21 @@
+{
+  "name": "jooblie-platform",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9"
+  },
+  "scripts": {
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "build": "turbo run build",
+    "gen:types": "echo \"Supabase type generation will be configured in Phase 1.\"",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "eslint": "9.39.5",
+    "turbo": "2.10.5",
+    "typescript": "5.9.3"
+  }
+}
