@@ -40,7 +40,7 @@
 - Supabase CLI is exact-pinned at `2.109.1`; GitHub Actions uses official `supabase/setup-cli@v3`.
 - CI detects database-relevant paths, starts a fresh local Postgres container, runs `db reset`, checks generated-type drift, and invokes the RLS harness.
 - Local machine has no Docker-compatible runtime, so the real `db start`/`db reset` acceptance proof must run on the GitHub Actions Ubuntu runner. CLI version and zero-test harness are locally verified.
-- Phase 0.3 acceptance still pending: first stale-types negative CI run, regenerated type commit, then green database gate.
+- Phase 0.3 stale-types negative test passed as designed on PR #2: local DB start/reset succeeded, then `Database gates` failed only on the placeholder type diff. The CI-generated types are now committed; final green rerun is pending.
 - `.github/workflows/ci.yml` implements the Phase 0.2 PR pipeline: frozen install, affected lint/typecheck, site-registry contract check, and affected builds. `workflow_dispatch` runs the full monorepo.
 - Root CI/config/script files are Turborepo global dependencies, so a root-only PR (including the initial CI PR) verifies all workspaces instead of selecting zero tasks.
 - Local verification passed on 2026-07-17: frozen install; affected-mode selected all workspaces; 25/25 lint+typecheck tasks; site registry (7 public sites + admin); 11/11 build tasks; workflow YAML parse; `git diff --check`.
