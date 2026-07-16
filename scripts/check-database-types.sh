@@ -13,7 +13,7 @@ trap cleanup EXIT
 
 supabase gen types typescript --local > "$generated_types"
 
-if ! diff -u "$committed_types" "$generated_types"; then
+if ! diff -u -B "$committed_types" "$generated_types"; then
   echo
   echo "Generated database types are stale."
   echo "Run 'pnpm gen:types' with the local Supabase database running, then commit the result."
