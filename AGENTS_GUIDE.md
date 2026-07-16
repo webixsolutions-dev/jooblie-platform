@@ -1,8 +1,8 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 0.2 (CI skeleton) — CODE COMPLETE, GITHUB ADMIN SETUP BLOCKED
-- **Active slice:** 0.2 until the GitHub settings and real-PR acceptance check are complete
+- **Phase:** 0.2 (CI skeleton) — CI ACCEPTED, GITHUB ADMIN SETUP BLOCKED
+- **Active slice:** 0.2 until the admin-only GitHub settings are complete
 - **Next slice:** 0.3 (CI DB gate), only after 0.2 is fully accepted
 - **Repo:** webixsolutions-dev/jooblie-platform
 
@@ -36,14 +36,15 @@
 - `.github/workflows/ci.yml` implements the Phase 0.2 PR pipeline: frozen install, affected lint/typecheck, site-registry contract check, and affected builds. `workflow_dispatch` runs the full monorepo.
 - Root CI/config/script files are Turborepo global dependencies, so a root-only PR (including the initial CI PR) verifies all workspaces instead of selecting zero tasks.
 - Local verification passed on 2026-07-17: frozen install; affected-mode selected all workspaces; 25/25 lint+typecheck tasks; site registry (7 public sites + admin); 11/11 build tasks; workflow YAML parse; `git diff --check`.
+- Draft PR #1 (`codex/phase-0-2-ci-skeleton`) ran the real GitHub Actions workflow successfully: `Quality gates` passed in 51 seconds.
 - The site-registry check currently validates registry ↔ app/env consistency. Migration `0014` does not exist in Phase 0.2; extend this same check with registry ↔ DB seed comparison in Phase 1.9.
 - GitHub CLI authentication is working as `hashhaam`. The account has `push` but not `admin/maintain` permission. API checks confirmed:
   - `main` has no branch protection and no repository/org ruleset.
   - creating `staging` and `production` Environments returns `403 Must have admin rights to Repository`.
-  - branch-protection update is inaccessible without repository admin rights.
+  - updating `main` branch protection returns `404 Not Found` for the write-only collaborator; repository admin access is required.
 - Repo admin must finish 0.2 by:
   1. Protecting `main`: pull request required, `Quality gates` required and strict/up-to-date, linear history required, conversation resolution required, force-push/delete disabled.
   2. Creating `staging` and `production` GitHub Environment shells.
   3. Adding `hashhaam` as the production required reviewer.
-  4. Running a scratch-branch PR and confirming `Quality gates` passes and direct push to `main` is rejected.
-- CI workflow changes are R4-risky. Do not commit until Hasham reviews the diff and explicitly says `proceed`.
+  4. Confirming direct push to `main` is rejected after protection is enabled.
+- CI workflow changes are R4-risky. Hasham provided explicit proceed approval; the reviewed change is published in draft PR #1 and requires the mandatory second-human review before merge.
