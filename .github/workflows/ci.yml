@@ -2,8 +2,6 @@ name: CI
 
 on:
   pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -14,6 +12,33 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect database changes
+    runs-on: ubuntu-latest
+    outputs:
+      database: ${{ steps.database.outputs.changed }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect database-relevant changes
+        id: database
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            changed=true
+          else
+            changed="$(bash scripts/ci/database-changes.sh "$BASE_SHA" "$HEAD_SHA")"
+          fi
+
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "Database gate required: $changed"
+
   quality:
     name: Quality gates
     runs-on: ubuntu-latest
@@ -58,3 +83,41 @@ jobs:
       - name: Build all workspaces
         if: github.event_name == 'workflow_dispatch'
         run: pnpm exec turbo run build
+
+  database:
+    name: Database gates
+    needs:
+      - changes
+    if: needs.changes.outputs.database == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.109.1
+
+      - name: Start local database
+        run: supabase db start
+
+      - name: Reset database from migrations
+        run: supabase db reset --local
+
+      - name: Verify generated database types
+        run: bash scripts/check-database-types.sh
+
+      - name: Run RLS test harness
+        run: bash scripts/run-rls-tests.sh
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup

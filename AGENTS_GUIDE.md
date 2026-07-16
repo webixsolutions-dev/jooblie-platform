@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 0.2 (CI skeleton) — CI ACCEPTED, GITHUB ADMIN SETUP BLOCKED
-- **Active slice:** 0.2 until the admin-only GitHub settings are complete
-- **Next slice:** 0.3 (CI DB gate), only after 0.2 is fully accepted
+- **Phase:** 0.3 (CI DB gate) — IN PROGRESS
+- **Previous slice:** 0.2 CI accepted; repository-admin hardening is tracked separately by the repository owner
+- **Next slice:** 1.1 (Base migrations), only after 0.3 is verified
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -28,11 +28,19 @@
 - turbo run typecheck — typecheck all packages+apps
 - turbo run build — build all
 - pnpm check:site-registry — verify 7 public-site registry entries, app directories, and VITE_SITE_SLUG values
-- supabase start — local DB (Phase 1+)
-- supabase db reset — reset from migrations (Phase 1+)
-- pnpm gen:types — regenerate DB types (Phase 1+)
+- pnpm db:start — start the local Supabase Postgres container
+- pnpm db:reset — recreate the local database from migrations
+- pnpm gen:types — safely regenerate committed database types
+- pnpm check:db-types — fail when committed types differ from the local schema
+- pnpm test:rls — run pgTAP/RLS tests; succeeds with zero tests during Phase 0.3
+- pnpm db:stop — stop local Supabase without saving a backup
 
 ## In-Flight Notes
+- Phase 0.3 is being developed on `codex/phase-0-3-ci-db-gate`, stacked on the Phase 0.2 branch.
+- Supabase CLI is exact-pinned at `2.109.1`; GitHub Actions uses official `supabase/setup-cli@v3`.
+- CI detects database-relevant paths, starts a fresh local Postgres container, runs `db reset`, checks generated-type drift, and invokes the RLS harness.
+- Local machine has no Docker-compatible runtime, so the real `db start`/`db reset` acceptance proof must run on the GitHub Actions Ubuntu runner. CLI version and zero-test harness are locally verified.
+- Phase 0.3 acceptance still pending: first stale-types negative CI run, regenerated type commit, then green database gate.
 - `.github/workflows/ci.yml` implements the Phase 0.2 PR pipeline: frozen install, affected lint/typecheck, site-registry contract check, and affected builds. `workflow_dispatch` runs the full monorepo.
 - Root CI/config/script files are Turborepo global dependencies, so a root-only PR (including the initial CI PR) verifies all workspaces instead of selecting zero tasks.
 - Local verification passed on 2026-07-17: frozen install; affected-mode selected all workspaces; 25/25 lint+typecheck tasks; site registry (7 public sites + admin); 11/11 build tasks; workflow YAML parse; `git diff --check`.
