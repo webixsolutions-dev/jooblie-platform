@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint and typecheck affected workspaces
+        if: github.event_name == 'pull_request'
+        run: pnpm exec turbo run lint typecheck --filter="...[origin/${{ github.base_ref }}]"
+
+      - name: Lint and typecheck all workspaces
+        if: github.event_name == 'workflow_dispatch'
+        run: pnpm exec turbo run lint typecheck
+
+      - name: Verify site registry contract
+        run: pnpm check:site-registry
+
+      - name: Build affected workspaces
+        if: github.event_name == 'pull_request'
+        run: pnpm exec turbo run build --filter="...[origin/${{ github.base_ref }}]"
+
+      - name: Build all workspaces
+        if: github.event_name == 'workflow_dispatch'
+        run: pnpm exec turbo run build

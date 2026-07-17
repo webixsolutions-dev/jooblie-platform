@@ -10,6 +10,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "build": "turbo run build",
+    "check:site-registry": "node scripts/check-site-registry.mjs",
     "gen:types": "echo \"Supabase type generation will be configured in Phase 1.\"",
     "dev": "turbo run dev"
   },
