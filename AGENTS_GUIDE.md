@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 0.2 (CI skeleton) — CI ACCEPTED, GITHUB ADMIN SETUP BLOCKED
-- **Active slice:** 0.2 until the admin-only GitHub settings are complete
-- **Next slice:** 0.3 (CI DB gate), only after 0.2 is fully accepted
+- **Phase:** 1.1 (Base migrations) — NEXT SLICE
+- **Active slice:** 1.1 — migrations 0001–0003 (extensions, enums, helpers)
+- **Previous phase:** Phase 0 foundation complete
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -21,6 +21,7 @@
 5. RLS policy naming: {table}_{role}_{op} — one per (table, role, op)
 6. Generated types only — never hand-edit database.types.ts
 7. Per-file git staging only — never git add . (Rules R3.2)
+8. Normal changes use documented self-review; R4-flagged risky changes stop for external-architect review before merge (Rules R3.1/R4).
 
 ## Commands
 - pnpm install — install all deps
