@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.2 (Reference tables) — COMPLETE
-- **Active slice:** none — Phase 1.2 is awaiting PR review/merge
-- **Next slice:** 1.3 — migration 0005 (profiles, auth triggers, column grants, RLS)
+- **Phase:** 1.3 (Identity) — COMPLETE
+- **Active slice:** none — Phase 1.3 is awaiting external-architect review/merge (R4-risky)
+- **Next slice:** 1.4 — migration 0006 (companies, company_members, owner/verify/resubmit triggers, RLS)
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,6 +34,50 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **DEFERRED (must land in slice 1.6, migration 0008): `profiles_recruiter_select_applicant`.**
+  SystemDesign §3/§5 requires a recruiter to SELECT the profiles of applicants who
+  applied to their company's jobs, via an EXISTS join over `applications` +
+  `company_members`. Neither table exists until 1.4/1.6, so the policy is NOT in 0005.
+  Until it lands, a recruiter can read only their own profile row. Do not create
+  placeholder tables for it. The deferral is also recorded inline at the foot of
+  `0005_profiles.sql`.
+- **DEFERRED (admin/moderation slice, 4.5): the admin `profiles.status` write path.**
+  Column grants are Postgres-role-wide while RLS is row-wide, and admins authenticate
+  as the same `authenticated` role as everyone else. Granting `UPDATE(status)` to
+  `authenticated` would therefore also let a job_seeker clear their own suspension
+  through `profiles_job_seeker_update`. 0005 consequently withholds `status` from every
+  client grant, so `profiles_admin_update` currently reaches only the seven editable
+  columns. Admin suspensions must go through a SECURITY DEFINER function or a
+  service-role Edge Function — design that in the moderation slice, do not "fix" it by
+  widening the grant. Ruled by Hasham during 1.3.
+- **ENFORCED ORDERING, not a bug: `sites` must be seeded (migration 0014, slice 1.9)
+  before any real signup.** `profiles.signup_site_id` is NOT NULL with an FK to `sites`
+  and the signup trigger falls back to Jooblie (id = 1), so an auth signup against an
+  unseeded `sites` table raises a foreign-key violation. `signup_site_id` stays NOT NULL
+  — do not make it nullable. No frontend signs up before 1.9;
+  `supabase/tests/phase_1_3_identity.sql` seeds the sites rows it needs inside its own
+  rolled-back transaction.
+- Phase 1.3 identity contract in `0005_profiles.sql`: the `on_auth_user_created` trigger
+  is the ONLY profile-creation path (no client INSERT policy, no INSERT grant), the role
+  whitelist is exact-match `job_seeker`/`recruiter` with no normalization (so `'Recruiter'`
+  → `job_seeker`), and `anon` holds no privilege of any kind on `profiles`
+  (remediation #3/#7). Six policies exist, all targeting `authenticated` only.
+- Generated types cannot see column grants: `database.types.ts` marks `profiles.role`,
+  `status`, `email`, and `signup_site_id` as optional in the `Update` shape, so
+  `.update({ role: 'admin' })` compiles clean and fails only at runtime with `42501`.
+  Close this in the `@jooblie/core` query slice (3.2) with a hand-written narrowed
+  update type; the DB enforcement itself is correct and asserted.
+- RLS test structure convention (carried from 1.2, preserve in 1.4+): `set local role`
+  belongs at psql top level, never inside a `DO` block. A caught exception opens a
+  subtransaction and GUC changes made inside one are rolled back on abort, so a role
+  switch inside an exception-handling block silently reverts mid-test.
+- Phase 1.3 was verified by mutation-testing the suite, not only by running it green:
+  seven deliberate regressions (status grant leak, whitelist removed, whitelist admitting
+  `admin`, site fallback changed, anon SELECT policy, client INSERT policy, and a `PUBLIC`
+  catch-all policy with the policy count held at 6) were each confirmed to fail the suite.
+  Recommended practice for the remaining RLS-heavy slices — a suite built on
+  `exception when insufficient_privilege then null` can otherwise pass by swallowing
+  failures for the wrong reason.
 - Phase 1.2 adds schema-only reference tables in `0004_reference.sql`: `sectors`, `categories`, and `sites`. All three expose one public-read SELECT policy to `anon` and `authenticated`; clients have no INSERT/UPDATE/DELETE policies. Seed rows remain deferred to Phase 1.9 migration `0014`.
 - Phase 1.1 defines all approved helpers in `0003_helpers.sql`; none were deferred. The table-dependent PL/pgSQL bodies resolve `profiles`/`company_members` when called, so do not call those helpers before slices 1.3/1.4 create the referenced tables.
 - Phase 1.1 uses the custom `public.set_updated_at()` trigger function from `0003_helpers.sql`; the `moddatetime` extension is not enabled.
