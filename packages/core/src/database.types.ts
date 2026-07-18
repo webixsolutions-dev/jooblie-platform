@@ -34,7 +34,100 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          id: number
+          is_active: boolean | null
+          name: string
+          sector_id: number
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          id: number
+          is_active?: boolean | null
+          name: string
+          sector_id: number
+          slug: string
+          sort_order: number
+        }
+        Update: {
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          sector_id?: number
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sectors: {
+        Row: {
+          id: number
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          id: number
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Update: {
+          id?: number
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      sites: {
+        Row: {
+          domain: string
+          id: number
+          is_active: boolean | null
+          name: string
+          sector_id: number | null
+          site_type: Database["public"]["Enums"]["site_type"]
+          slug: string
+        }
+        Insert: {
+          domain: string
+          id: number
+          is_active?: boolean | null
+          name: string
+          sector_id?: number | null
+          site_type: Database["public"]["Enums"]["site_type"]
+          slug: string
+        }
+        Update: {
+          domain?: string
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          sector_id?: number | null
+          site_type?: Database["public"]["Enums"]["site_type"]
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
