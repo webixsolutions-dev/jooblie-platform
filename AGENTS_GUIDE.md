@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.1 (Base migrations) — COMPLETE
-- **Active slice:** none — Phase 1.1 is awaiting PR review/merge
-- **Next slice:** 1.2 — migration 0004 (sectors, categories, sites + read-only RLS)
+- **Phase:** 1.2 (Reference tables) — COMPLETE
+- **Active slice:** none — Phase 1.2 is awaiting PR review/merge
+- **Next slice:** 1.3 — migration 0005 (profiles, auth triggers, column grants, RLS)
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,6 +34,7 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- Phase 1.2 adds schema-only reference tables in `0004_reference.sql`: `sectors`, `categories`, and `sites`. All three expose one public-read SELECT policy to `anon` and `authenticated`; clients have no INSERT/UPDATE/DELETE policies. Seed rows remain deferred to Phase 1.9 migration `0014`.
 - Phase 1.1 defines all approved helpers in `0003_helpers.sql`; none were deferred. The table-dependent PL/pgSQL bodies resolve `profiles`/`company_members` when called, so do not call those helpers before slices 1.3/1.4 create the referenced tables.
 - Phase 1.1 uses the custom `public.set_updated_at()` trigger function from `0003_helpers.sql`; the `moddatetime` extension is not enabled.
 - The current main-base CI workflow does not contain the Phase 0.3 Supabase DB/type/test gate. This slice is locally verified; restore that CI gate in its own approved scope rather than changing CI here.
