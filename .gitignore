@@ -5,4 +5,8 @@ dist/
 .DS_Store
 *.local
 .turbo/
+**/.turbo/
+.pnpm-store/
 .supabase/
+supabase/.temp/
+supabase/.branches/
