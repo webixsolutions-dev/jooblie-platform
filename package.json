@@ -11,7 +11,7 @@
     "typecheck": "turbo run typecheck",
     "build": "turbo run build",
     "check:site-registry": "node scripts/check-site-registry.mjs",
-    "gen:types": "echo \"Supabase type generation will be configured in Phase 1.\"",
+    "gen:types": "supabase gen types typescript --local | perl -0pe 's/\\n+\\z/\\n/' > packages/core/src/database.types.ts",
     "dev": "turbo run dev"
   },
   "devDependencies": {
