@@ -69,6 +69,65 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          default_resume_path: string | null
+          email: string
+          full_name: string | null
+          headline: string | null
+          id: string
+          location_city: string | null
+          location_province: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          signup_site_id: number
+          skills: string[] | null
+          status: Database["public"]["Enums"]["user_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_resume_path?: string | null
+          email: string
+          full_name?: string | null
+          headline?: string | null
+          id: string
+          location_city?: string | null
+          location_province?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          signup_site_id: number
+          skills?: string[] | null
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_resume_path?: string | null
+          email?: string
+          full_name?: string | null
+          headline?: string | null
+          id?: string
+          location_city?: string | null
+          location_province?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          signup_site_id?: number
+          skills?: string[] | null
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_signup_site_id_fkey"
+            columns: ["signup_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sectors: {
         Row: {
           id: number
