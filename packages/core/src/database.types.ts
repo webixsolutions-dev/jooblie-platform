@@ -34,6 +34,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          applicant_id: string
+          applied_via_site_id: number
+          cover_letter: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          job_id: string
+          resume_path: string
+          status: Database["public"]["Enums"]["application_status"]
+          status_updated_at: string
+          updated_at: string
+        }
+        Insert: {
+          applicant_id?: string
+          applied_via_site_id: number
+          cover_letter?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          job_id: string
+          resume_path: string
+          status?: Database["public"]["Enums"]["application_status"]
+          status_updated_at?: string
+          updated_at?: string
+        }
+        Update: {
+          applicant_id?: string
+          applied_via_site_id?: number
+          cover_letter?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          job_id?: string
+          resume_path?: string
+          status?: Database["public"]["Enums"]["application_status"]
+          status_updated_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_applied_via_site_id_fkey"
+            columns: ["applied_via_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           id: number
@@ -207,6 +271,55 @@ export type Database = {
           },
         ]
       }
+      job_views: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          site_id: number
+          viewed_on: string
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          site_id: number
+          viewed_on?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          site_id?: number
+          viewed_on?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_views_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_views_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           category_id: number
@@ -376,6 +489,49 @@ export type Database = {
           },
         ]
       }
+      saved_jobs: {
+        Row: {
+          created_at: string
+          job_id: string
+          saved_via_site_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          job_id: string
+          saved_via_site_id: number
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          job_id?: string
+          saved_via_site_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_jobs_saved_via_site_id_fkey"
+            columns: ["saved_via_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sectors: {
         Row: {
           id: number
@@ -455,12 +611,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      can_recruiter_view_applicant: {
+        Args: { _applicant_id: string }
+        Returns: boolean
+      }
       company_is_suspended: { Args: { _company_id: string }; Returns: boolean }
+      has_applied: { Args: { _job_id: string }; Returns: boolean }
+      has_saved: { Args: { _job_id: string }; Returns: boolean }
       immutable_arr_join: { Args: { _values: string[] }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_company_member: { Args: { _company_id: string }; Returns: boolean }
+      is_company_member_for_job: { Args: { _job_id: string }; Returns: boolean }
       is_recruiter: { Args: never; Returns: boolean }
       is_suspended: { Args: never; Returns: boolean }
+      job_accepts_applications: { Args: { _job_id: string }; Returns: boolean }
       jooblie_site_id: { Args: never; Returns: number }
     }
     Enums: {
