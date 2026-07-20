@@ -69,6 +69,114 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          logo_path: string | null
+          name: string
+          registration_number: string
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["company_status"]
+          updated_at: string
+          verification_document_path: string | null
+          verification_status: Database["public"]["Enums"]["company_verification"]
+          verified_at: string | null
+          verified_by: string | null
+          website: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          logo_path?: string | null
+          name: string
+          registration_number: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["company_status"]
+          updated_at?: string
+          verification_document_path?: string | null
+          verification_status?: Database["public"]["Enums"]["company_verification"]
+          verified_at?: string | null
+          verified_by?: string | null
+          website: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          logo_path?: string | null
+          name?: string
+          registration_number?: string
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["company_status"]
+          updated_at?: string
+          verification_document_path?: string | null
+          verification_status?: Database["public"]["Enums"]["company_verification"]
+          verified_at?: string | null
+          verified_by?: string | null
+          website?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          role: Database["public"]["Enums"]["company_member_role"]
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          role?: Database["public"]["Enums"]["company_member_role"]
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          role?: Database["public"]["Enums"]["company_member_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -192,9 +300,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_company_status: {
+        Args: {
+          _company_id: string
+          _status: Database["public"]["Enums"]["company_status"]
+        }
+        Returns: undefined
+      }
+      admin_set_company_verification: {
+        Args: {
+          _company_id: string
+          _reason?: string
+          _status: Database["public"]["Enums"]["company_verification"]
+        }
+        Returns: undefined
+      }
       immutable_arr_join: { Args: { _values: string[] }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_company_member: { Args: { _company_id: string }; Returns: boolean }
+      is_recruiter: { Args: never; Returns: boolean }
       is_suspended: { Args: never; Returns: boolean }
     }
     Enums: {

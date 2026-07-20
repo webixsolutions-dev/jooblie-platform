@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.3 (Identity) — COMPLETE
-- **Active slice:** none — Phase 1.3 is awaiting external-architect review/merge (R4-risky)
-- **Next slice:** 1.4 — migration 0006 (companies, company_members, owner/verify/resubmit triggers, RLS)
+- **Phase:** 1.4 (Companies) — COMPLETE
+- **Active slice:** none — Phase 1.4 is awaiting external-architect review/merge (R4-risky)
+- **Next slice:** 1.5 — migration 0007 (jobs, job_sites + visibility trigger, status machine, RLS)
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,6 +34,65 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **DEFERRED — SLICE 1.5 MUST DO THIS: verify → jobs activation.** SystemDesign §4.4
+  requires that verifying a company flips its `pending_review` jobs to `active` and
+  stamps their `published_at`/`expires_at`. `jobs` does not exist until 0007, so 0006
+  ships the verification write path without that block. **Migration 0007 must
+  `CREATE OR REPLACE public.admin_set_company_verification(...)` to add it** — a
+  roll-forward migration, never an edit to the merged 0006 file (R1.3). The RPC was
+  written as the single verification write path partly to give 1.5 exactly one
+  extension point instead of a trigger to retrofit. Until then, verifying a company
+  stamps `verified_at`/`verified_by` and nothing else; a company verified before 0007
+  lands will NOT have its pending jobs activated retroactively, so 0007 should consider
+  a one-off backfill if any such rows exist (none will locally, since `db reset` starts
+  clean). Also deferred to 1.7: `activity_log('company.verified'/'company.resubmitted')`
+  and the owner notification.
+- **Company verification/moderation writes go through SECURITY DEFINER RPCs, not
+  grants:** `admin_set_company_verification(company, status, reason)` and
+  `admin_set_company_status(company, status)`. Same root cause as the profiles.status
+  problem — grants are Postgres-role-wide, RLS is row-wide, admins share the
+  `authenticated` role — but resolved differently, because admin company verification is
+  a core v1 flow (Phases 1.4/A3) whereas admin profile suspension is not yet. Had
+  `UPDATE(verification_status)` been granted, a recruiter could verify their OWN company
+  through `companies_recruiter_update`, and from 1.5 onward that would auto-activate
+  their pending jobs — self-service job posting with no review. There is deliberately
+  **no `companies_admin_update` policy**; do not add one.
+- The companies INSERT grant is **column-scoped** (`name, website, registration_number,
+  verification_document_path, logo_path, description, created_by`) so a recruiter cannot
+  create a company that is already `verified`/`active` — the protected columns cannot
+  appear in the INSERT column list, so their defaults always apply. Preserve this pattern
+  on any table where a default is a security boundary.
+- `companies_recruiter_insert` requires `not public.is_suspended()`: a suspended or
+  deleted recruiter must not be able to stand up a new company. Asserted for both
+  statuses and mutation-proven.
+- **Helper set is now 6.** `is_recruiter()` was added in `0006_companies.sql` alongside
+  the five from 0003 (`is_admin`, `is_company_member`, `is_suspended`,
+  `immutable_arr_join`, `set_updated_at`). It is SECURITY DEFINER + STABLE with an empty
+  search_path like the others. Rationale: the companies INSERT policy needs a caller-role
+  check, and per SystemDesign §6.2 that cross-table lookup must go through a definer
+  helper rather than an inline EXISTS in the policy, which risks recursive RLS.
+- **DEFERRED (future slice): company close / soft-delete path.** `companies.deleted_at`
+  exists and every policy already filters on it (`deleted_at is null`), and the partial
+  unique index on `lower(name)` deliberately frees a retired name for reuse. But there is
+  **no client DELETE policy and no grant on `deleted_at`**, so nothing can currently set
+  it — soft delete is reachable only by a service role. The owner-facing "close company"
+  flow, including the sole-owner guard that SystemDesign §8 references from the
+  account-deletion path, needs its own slice.
+- **DEFERRED (view-based fix, before public company pages ship): non-member
+  `registration_number` read.** `authenticated` holds a full-table SELECT grant on
+  `companies` because members must read `registration_number` and
+  `verification_document_path` on their own company, and column grants cannot distinguish
+  member from non-member. RLS still filters rows, but a logged-in non-member can read
+  those columns on a publicly-visible (verified+active) company. `anon` is already
+  column-scoped and unaffected. Accepted for v1; the fix is a public company view with
+  its own narrow grant, not a change to the grants on the base table.
+- Company name uniqueness is `lower(name)` only — it does NOT collapse whitespace, so
+  `' acme corp '` coexists with `'Acme Corp'`. Current behaviour is asserted in the test
+  suite, so adding `trim()` later is a deliberate decision rather than a silent change.
+- Test-writing note carried from 1.4: `unique_violation` alone is not a sufficient
+  assertion for duplicate-name tests, because a primary-key collision raises the same
+  SQLSTATE. Assert `constraint_name` via `get stacked diagnostics` so the test cannot
+  pass for the wrong reason.
 - **DEFERRED (must land in slice 1.6, migration 0008): `profiles_recruiter_select_applicant`.**
   SystemDesign §3/§5 requires a recruiter to SELECT the profiles of applicants who
   applied to their company's jobs, via an EXISTS join over `applications` +
