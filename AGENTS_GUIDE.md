@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.4 (Companies) — COMPLETE
-- **Active slice:** none — Phase 1.4 is awaiting external-architect review/merge (R4-risky)
-- **Next slice:** 1.5 — migration 0007 (jobs, job_sites + visibility trigger, status machine, RLS)
+- **Phase:** 1.5 (Jobs) — COMPLETE
+- **Active slice:** 1.6 — migration 0008 (applications, saved_jobs, job_views, transition rules + RLS)
+- **Next slice:** 1.7 — migrations 0009–0010 (notifications + activity log)
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,19 +34,47 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
-- **DEFERRED — SLICE 1.5 MUST DO THIS: verify → jobs activation.** SystemDesign §4.4
-  requires that verifying a company flips its `pending_review` jobs to `active` and
-  stamps their `published_at`/`expires_at`. `jobs` does not exist until 0007, so 0006
-  ships the verification write path without that block. **Migration 0007 must
-  `CREATE OR REPLACE public.admin_set_company_verification(...)` to add it** — a
-  roll-forward migration, never an edit to the merged 0006 file (R1.3). The RPC was
-  written as the single verification write path partly to give 1.5 exactly one
-  extension point instead of a trigger to retrofit. Until then, verifying a company
-  stamps `verified_at`/`verified_by` and nothing else; a company verified before 0007
-  lands will NOT have its pending jobs activated retroactively, so 0007 should consider
-  a one-off backfill if any such rows exist (none will locally, since `db reset` starts
-  clean). Also deferred to 1.7: `activity_log('company.verified'/'company.resubmitted')`
-  and the owner notification.
+- **Phase 1.5 jobs contract is implemented in `0007_jobs.sql`.** It creates `jobs`,
+  `job_sites`, the synchronous origin + Jooblie visibility trigger, server-derived
+  publication state, the caller-agnostic `JB007` transition graph, protected column
+  grants, RLS, FTS, and the verification-activation roll-forward for
+  `admin_set_company_verification(...)`.
+- **DEFERRED — must land in slice 1.6 (`0008`): FIX 1 seeker applied/saved SELECT
+  branches.** `jobs_job_seeker_select` in 0007 intentionally exposes only the
+  public-active branch because `applications` and `saved_jobs` do not exist yet. 0008
+  must replace that policy (DROP/CREATE; PostgreSQL has no `CREATE OR REPLACE POLICY`)
+  and add `has_applied()` / `has_saved()` SECURITY DEFINER helpers so a seeker can read
+  their applied or saved jobs in every status, including suspended-company jobs.
+- **DEFERRED — must land in slice 1.7:** `activity_log('job.created')`, new-applicant
+  notifications, and company-verification notifications. Add these by rolling forward
+  the relevant AFTER-trigger functions; do not edit merged migrations or add the writes
+  to 0007.
+- **DEFERRED — must land in slice 1.8:** the job-post rolling-24-hour rate-limit
+  trigger, config-driven expiry interval, automatic expiry cron, and expiry-reminder
+  cron. The 0007 insert/verification paths intentionally hardcode `interval '60 days'`
+  until `platform_config` exists.
+- **DEFERRED — later lifecycle/moderation slice:** recruiter close/renew RPCs, admin
+  takedown/restore RPCs, and the job soft-delete RPC. `jobs.deleted_at` has no client
+  write path in 0007. The transition trigger already accepts the required legal edges,
+  but actor authorization and timestamp management belong in those definer RPCs.
+- **DEFERRED — later admin moderation:** `jobs_admin_update`. Admin job writes must go
+  through narrow SECURITY DEFINER RPCs; do not grant protected lifecycle columns to the
+  shared `authenticated` role.
+- **Seed coupling — mandatory in 0014:** the `sites` seed MUST assign
+  `slug = 'jooblie'` the fixed id `1`. Job origin/junction visibility depends on
+  `public.jooblie_site_id() = 1`. Extend the 0014/site-registry cross-check to assert
+  `(select id from public.sites where slug = 'jooblie') = public.jooblie_site_id()`.
+- **Generated types encode columns, not RLS or column grants.** The generated jobs
+  Insert/Update shapes include protected fields such as `status`, `published_at`, and
+  `expires_at`, even though clients cannot write them. Core query hooks in slice 3.2
+  must expose narrowed insert/update payload types containing only granted columns;
+  lifecycle fields remain server-derived and are never client-set.
+- **ACCEPTED RISK (v1): `job_sites` SELECT uses `USING (true)`.** This exposes only an
+  opaque job UUID + site tag for hidden jobs; `jobs` RLS remains the real data boundary.
+  Revisit with stricter gating only if the metadata leak becomes material.
+- **Moderation observation:** `companies.verification_status` has no state machine.
+  Changing a verified company to rejected leaves its already-active jobs untouched;
+  company suspension is the takedown tool. Revisit only in the moderation slice.
 - **Company verification/moderation writes go through SECURITY DEFINER RPCs, not
   grants:** `admin_set_company_verification(company, status, reason)` and
   `admin_set_company_status(company, status)`. Same root cause as the profiles.status

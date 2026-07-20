@@ -177,6 +177,146 @@ export type Database = {
           },
         ]
       }
+      job_sites: {
+        Row: {
+          job_id: string
+          site_id: number
+        }
+        Insert: {
+          job_id: string
+          site_id: number
+        }
+        Update: {
+          job_id?: string
+          site_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_sites_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          category_id: number
+          city: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          description: string
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          expires_at: string | null
+          id: string
+          is_remote: boolean
+          origin_site_id: number
+          province: string | null
+          published_at: string | null
+          removed_reason: string | null
+          salary_currency: string
+          salary_max: number | null
+          salary_min: number | null
+          salary_period: Database["public"]["Enums"]["salary_period"] | null
+          search_vector: unknown
+          skills: string[]
+          status: Database["public"]["Enums"]["job_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: number
+          city?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          description: string
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          expires_at?: string | null
+          id?: string
+          is_remote?: boolean
+          origin_site_id: number
+          province?: string | null
+          published_at?: string | null
+          removed_reason?: string | null
+          salary_currency?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: Database["public"]["Enums"]["salary_period"] | null
+          search_vector?: unknown
+          skills?: string[]
+          status?: Database["public"]["Enums"]["job_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: number
+          city?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          description?: string
+          employment_type?: Database["public"]["Enums"]["employment_type"]
+          expires_at?: string | null
+          id?: string
+          is_remote?: boolean
+          origin_site_id?: number
+          province?: string | null
+          published_at?: string | null
+          removed_reason?: string | null
+          salary_currency?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: Database["public"]["Enums"]["salary_period"] | null
+          search_vector?: unknown
+          skills?: string[]
+          status?: Database["public"]["Enums"]["job_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_origin_site_id_fkey"
+            columns: ["origin_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -315,11 +455,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      company_is_suspended: { Args: { _company_id: string }; Returns: boolean }
       immutable_arr_join: { Args: { _values: string[] }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_company_member: { Args: { _company_id: string }; Returns: boolean }
       is_recruiter: { Args: never; Returns: boolean }
       is_suspended: { Args: never; Returns: boolean }
+      jooblie_site_id: { Args: never; Returns: number }
     }
     Enums: {
       application_status:
