@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.5 (Jobs) — COMPLETE
-- **Active slice:** 1.6 — migration 0008 (applications, saved_jobs, job_views, transition rules + RLS)
-- **Next slice:** 1.7 — migrations 0009–0010 (notifications + activity log)
+- **Phase:** 1.6 (Applications) — COMPLETE
+- **Active slice:** 1.7 — migrations 0009–0010 (notifications + activity_log)
+- **Next slice:** 1.8 — migrations 0011–0013 (config, cron, rate limits + storage)
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,25 +34,35 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **Phase 1.6 applications contract is implemented in `0008_applications.sql`.** It
+  creates `applications`, `saved_jobs`, and `job_views`; enforces immutable resume
+  snapshots and the actor-aware `JB008` application transition graph; completes FIX 1
+  with `has_applied()` / `has_saved()`; adds authenticated daily view dedupe + spoof
+  guards; and adds recruiter application/profile/view boundaries without weakening
+  anon profile isolation.
 - **Phase 1.5 jobs contract is implemented in `0007_jobs.sql`.** It creates `jobs`,
   `job_sites`, the synchronous origin + Jooblie visibility trigger, server-derived
   publication state, the caller-agnostic `JB007` transition graph, protected column
   grants, RLS, FTS, and the verification-activation roll-forward for
   `admin_set_company_verification(...)`.
-- **DEFERRED — must land in slice 1.6 (`0008`): FIX 1 seeker applied/saved SELECT
-  branches.** `jobs_job_seeker_select` in 0007 intentionally exposes only the
-  public-active branch because `applications` and `saved_jobs` do not exist yet. 0008
-  must replace that policy (DROP/CREATE; PostgreSQL has no `CREATE OR REPLACE POLICY`)
-  and add `has_applied()` / `has_saved()` SECURITY DEFINER helpers so a seeker can read
-  their applied or saved jobs in every status, including suspended-company jobs.
-- **DEFERRED — must land in slice 1.7:** `activity_log('job.created')`, new-applicant
-  notifications, and company-verification notifications. Add these by rolling forward
-  the relevant AFTER-trigger functions; do not edit merged migrations or add the writes
-  to 0007.
-- **DEFERRED — must land in slice 1.8:** the job-post rolling-24-hour rate-limit
-  trigger, config-driven expiry interval, automatic expiry cron, and expiry-reminder
-  cron. The 0007 insert/verification paths intentionally hardcode `interval '60 days'`
+- **FIX 1 is complete in 0008.** `jobs_job_seeker_select` was replaced via DROP/CREATE
+  and its own-application / own-saved branches intentionally bypass status,
+  soft-delete, and company-suspension filters so seeker dashboards retain context.
+- **DEFERRED — must land in slice 1.7:** `activity_log` plus all job, application,
+  company-verification, and application-status notification/audit writes. Add these by
+  rolling forward the relevant trigger functions; do not edit merged migrations.
+- **DEFERRED — must land in slice 1.8:** application/job-post rolling-24-hour rate
+  limits, job_views anonymous throttling, the private resume bucket + signed-URL
+  policies, config-driven expiry, automatic expiry cron, and expiry-reminder cron.
+  The 0007 insert/verification paths intentionally hardcode `interval '60 days'`
   until `platform_config` exists.
+- **Attribution validation decision — slice 2.1:** 0008 stores
+  `applied_via_site_id` / `saved_via_site_id` for attribution but does NOT validate
+  either value against `job_sites` membership. When email deep-links are designed in
+  2.1, decide whether application/save INSERT needs an EXISTS(job_sites) WITH CHECK.
+- **Phase 1.6 test maintenance:** `phase_1_6_applications.sql` intentionally uses
+  absolute application counts for applicant/recruiter/admin boundaries. Adjust those
+  counts whenever application fixtures are added or removed.
 - **DEFERRED — later lifecycle/moderation slice:** recruiter close/renew RPCs, admin
   takedown/restore RPCs, and the job soft-delete RPC. `jobs.deleted_at` has no client
   write path in 0007. The transition trigger already accepts the required legal edges,
@@ -93,12 +103,11 @@
 - `companies_recruiter_insert` requires `not public.is_suspended()`: a suspended or
   deleted recruiter must not be able to stand up a new company. Asserted for both
   statuses and mutation-proven.
-- **Helper set is now 6.** `is_recruiter()` was added in `0006_companies.sql` alongside
-  the five from 0003 (`is_admin`, `is_company_member`, `is_suspended`,
-  `immutable_arr_join`, `set_updated_at`). It is SECURITY DEFINER + STABLE with an empty
-  search_path like the others. Rationale: the companies INSERT policy needs a caller-role
-  check, and per SystemDesign §6.2 that cross-table lookup must go through a definer
-  helper rather than an inline EXISTS in the policy, which risks recursive RLS.
+- **Helper set is now 11.** The original five from 0003 plus `is_recruiter()` from 0006
+  are joined by five STABLE SECURITY DEFINER helpers from 0008:
+  `is_company_member_for_job`, `job_accepts_applications`, `has_applied`, `has_saved`,
+  and `can_recruiter_view_applicant`. Cross-table policy lookups stay behind these
+  empty-search_path helpers to avoid recursive RLS.
 - **DEFERRED (future slice): company close / soft-delete path.** `companies.deleted_at`
   exists and every policy already filters on it (`deleted_at is null`), and the partial
   unique index on `lower(name)` deliberately frees a retired name for reuse. But there is
@@ -121,13 +130,10 @@
   assertion for duplicate-name tests, because a primary-key collision raises the same
   SQLSTATE. Assert `constraint_name` via `get stacked diagnostics` so the test cannot
   pass for the wrong reason.
-- **DEFERRED (must land in slice 1.6, migration 0008): `profiles_recruiter_select_applicant`.**
-  SystemDesign §3/§5 requires a recruiter to SELECT the profiles of applicants who
-  applied to their company's jobs, via an EXISTS join over `applications` +
-  `company_members`. Neither table exists until 1.4/1.6, so the policy is NOT in 0005.
-  Until it lands, a recruiter can read only their own profile row. Do not create
-  placeholder tables for it. The deferral is also recorded inline at the foot of
-  `0005_profiles.sql`.
+- **Recruiter applicant-profile boundary is complete in 0008.**
+  `profiles_recruiter_select_applicant` uses the definer helper over applications,
+  jobs, and company membership; unrelated recruiters see zero rows and deleted
+  applicant profiles remain invisible while their application records survive.
 - **DEFERRED (admin/moderation slice, 4.5): the admin `profiles.status` write path.**
   Column grants are Postgres-role-wide while RLS is row-wide, and admins authenticate
   as the same `authenticated` role as everyone else. Granting `UPDATE(status)` to
@@ -148,7 +154,8 @@
   is the ONLY profile-creation path (no client INSERT policy, no INSERT grant), the role
   whitelist is exact-match `job_seeker`/`recruiter` with no normalization (so `'Recruiter'`
   → `job_seeker`), and `anon` holds no privilege of any kind on `profiles`
-  (remediation #3/#7). Six policies exist, all targeting `authenticated` only.
+  (remediation #3/#7). 0005 creates six policies; 0008 adds the seventh
+  `profiles_recruiter_select_applicant` policy, also targeting `authenticated` only.
 - Generated types cannot see column grants: `database.types.ts` marks `profiles.role`,
   `status`, `email`, and `signup_site_id` as optional in the `Update` shape, so
   `.update({ role: 'admin' })` compiles clean and fails only at runtime with `42501`.
