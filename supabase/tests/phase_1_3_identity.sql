@@ -229,6 +229,7 @@ begin
       values
         ('profiles_job_seeker_select', 'SELECT'),
         ('profiles_recruiter_select', 'SELECT'),
+        ('profiles_recruiter_select_applicant', 'SELECT'),
         ('profiles_admin_select', 'SELECT'),
         ('profiles_job_seeker_update', 'UPDATE'),
         ('profiles_recruiter_update', 'UPDATE'),
@@ -266,8 +267,8 @@ begin
   where policy.schemaname = 'public'
     and policy.tablename = 'profiles';
 
-  if actual_policy_count <> 6 then
-    raise exception 'public.profiles expected exactly 6 policies, got %',
+  if actual_policy_count <> 7 then
+    raise exception 'public.profiles expected exactly 7 policies, got %',
       actual_policy_count;
   end if;
 
