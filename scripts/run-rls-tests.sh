@@ -27,5 +27,23 @@ while IFS= read -r test_file; do
   echo "- $test_file"
 done < "$test_manifest"
 
-# Supabase discovers and runs every *.sql and *.pg file in supabase/tests.
-supabase test db --local
+project_id="$(sed -n 's/^project_id = "\(.*\)"$/\1/p' supabase/config.toml)"
+if [[ -z "$project_id" ]]; then
+  echo "Unable to read project_id from supabase/config.toml."
+  exit 1
+fi
+
+database_container="supabase_db_${project_id}"
+if ! docker inspect "$database_container" > /dev/null 2>&1; then
+  echo "Supabase database container is not running: $database_container"
+  exit 1
+fi
+
+while IFS= read -r test_file; do
+  echo "Executing $test_file"
+  docker exec -i "$database_container" \
+    psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 \
+    < "$test_file"
+done < "$test_manifest"
+
+echo "All $test_count database test file(s) passed."
