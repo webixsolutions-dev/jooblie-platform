@@ -72,6 +72,10 @@ begin
 
   if actual_triggers is distinct from array[
     'applications_enforce_resume_immutability',
+    'applications_log_status_changed',
+    'applications_log_submitted',
+    'applications_notify_new_applicant',
+    'applications_notify_status_changed',
     'applications_set_updated_at',
     'applications_validate_status_transition'
   ]::text[] then
