@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.7 (Notifications + activity log) — COMPLETE
-- **Active slice:** 1.8 — migrations 0011–0013 (config, cron, rate limits + storage)
-- **Next slice:** 1.9 — migration 0014 (seed data + cross-checks)
+- **Phase:** 1.9 (Seeds, resequenced ahead of config/storage) — COMPLETE
+- **Active slice:** 1.8-slim — migrations 0012–0013 (config, cron, rate limits + storage)
+- **Next slice:** 2.1 (email dispatch), after 1.8-slim completes Phase 1
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -28,12 +28,23 @@
 - pnpm lint — lint all packages+apps
 - turbo run typecheck — typecheck all packages+apps
 - turbo run build — build all
-- pnpm check:site-registry — verify 7 public-site registry entries, app directories, and VITE_SITE_SLUG values
+- pnpm check:site-registry — verify registry/app metadata plus launched-site parity with migration 0011
 - supabase start — local DB (Phase 1+)
 - supabase db reset — reset from migrations (Phase 1+)
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **Phase 1.9 seeds were deliberately resequenced ahead of 1.8 in migration 0011.**
+  The approved global taxonomy contains 5 sectors and 38 categories. The
+  `skilled-trades-construction` category belongs to the unmapped `general-services`
+  sector; no partner site has `sector_id = 5`. All 7 sites have fixed IDs, with
+  `jooblie` fixed at id 1. Only Jooblie is marked `launched` in the build-time registry;
+  the other six keep intended placeholder/current-host domains until their launches.
+- **Dev fixtures are explicit and production-excluded.**
+  `supabase/seed/seed_dev_users.sql` supplies four fixed local/staging users, verified
+  and pending companies, and three active sample jobs. It is outside migrations and is
+  not configured under `[db.seed]`, so CI reset and production `db push` never execute
+  it; apply it manually only to disposable local/staging databases.
 - **Phase 1.7 notifications + audit contract is implemented in migrations 0009–0010.**
   Notifications are minimal pointer payloads, suppress only deleted recipients, fan out
   new-applicant events to every company member, and distinguish fresh verification from
@@ -83,10 +94,9 @@
 - **DEFERRED — later admin moderation:** `jobs_admin_update`. Admin job writes must go
   through narrow SECURITY DEFINER RPCs; do not grant protected lifecycle columns to the
   shared `authenticated` role.
-- **Seed coupling — mandatory in 0014:** the `sites` seed MUST assign
-  `slug = 'jooblie'` the fixed id `1`. Job origin/junction visibility depends on
-  `public.jooblie_site_id() = 1`. Extend the 0014/site-registry cross-check to assert
-  `(select id from public.sites where slug = 'jooblie') = public.jooblie_site_id()`.
+- **Seed coupling is locked by 0011:** `slug = 'jooblie'` has fixed id `1`, and the
+  Phase 1.9 suite asserts it equals `public.jooblie_site_id()`. Job origin/junction
+  visibility depends on this invariant; never renumber the row.
 - **Generated types encode columns, not RLS or column grants.** The generated jobs
   Insert/Update shapes include protected fields such as `status`, `published_at`, and
   `expires_at`, even though clients cannot write them. Core query hooks in slice 3.2
@@ -156,13 +166,9 @@
   columns. Admin suspensions must go through a SECURITY DEFINER function or a
   service-role Edge Function — design that in the moderation slice, do not "fix" it by
   widening the grant. Ruled by Hasham during 1.3.
-- **ENFORCED ORDERING, not a bug: `sites` must be seeded (migration 0014, slice 1.9)
-  before any real signup.** `profiles.signup_site_id` is NOT NULL with an FK to `sites`
-  and the signup trigger falls back to Jooblie (id = 1), so an auth signup against an
-  unseeded `sites` table raises a foreign-key violation. `signup_site_id` stays NOT NULL
-  — do not make it nullable. No frontend signs up before 1.9;
-  `supabase/tests/phase_1_3_identity.sql` seeds the sites rows it needs inside its own
-  rolled-back transaction.
+- **Signup ordering is now satisfied by migration 0011.** `profiles.signup_site_id` is
+  NOT NULL with an FK to `sites`, and the signup trigger falls back to Jooblie id 1.
+  `signup_site_id` stays NOT NULL — do not make it nullable.
 - Phase 1.3 identity contract in `0005_profiles.sql`: the `on_auth_user_created` trigger
   is the ONLY profile-creation path (no client INSERT policy, no INSERT grant), the role
   whitelist is exact-match `job_seeker`/`recruiter` with no normalization (so `'Recruiter'`
@@ -185,7 +191,7 @@
   Recommended practice for the remaining RLS-heavy slices — a suite built on
   `exception when insufficient_privilege then null` can otherwise pass by swallowing
   failures for the wrong reason.
-- Phase 1.2 adds schema-only reference tables in `0004_reference.sql`: `sectors`, `categories`, and `sites`. All three expose one public-read SELECT policy to `anon` and `authenticated`; clients have no INSERT/UPDATE/DELETE policies. Seed rows remain deferred to Phase 1.9 migration `0014`.
+- Phase 1.2 adds schema-only reference tables in `0004_reference.sql`: `sectors`, `categories`, and `sites`. All three expose one public-read SELECT policy to `anon` and `authenticated`; clients have no INSERT/UPDATE/DELETE policies. Their approved rows are seeded by migration `0011`.
 - Phase 1.1 defines all approved helpers in `0003_helpers.sql`; none were deferred. The table-dependent PL/pgSQL bodies resolve `profiles`/`company_members` when called, so do not call those helpers before slices 1.3/1.4 create the referenced tables.
 - Phase 1.1 uses the custom `public.set_updated_at()` trigger function from `0003_helpers.sql`; the `moddatetime` extension is not enabled.
 - `.github/workflows/ci.yml` now restores the Phase 0.3 Supabase database gate alongside
@@ -199,7 +205,9 @@
 - Root CI/config/script files are Turborepo global dependencies, so a root-only PR (including the initial CI PR) verifies all workspaces instead of selecting zero tasks.
 - Local verification passed on 2026-07-17: frozen install; affected-mode selected all workspaces; 25/25 lint+typecheck tasks; site registry (7 public sites + admin); 11/11 build tasks; workflow YAML parse; `git diff --check`.
 - Draft PR #1 (`codex/phase-0-2-ci-skeleton`) ran the real GitHub Actions workflow successfully: `Quality gates` passed in 51 seconds.
-- The site-registry check currently validates registry ↔ app/env consistency. Migration `0014` does not exist in Phase 0.2; extend this same check with registry ↔ DB seed comparison in Phase 1.9.
+- The site-registry check validates registry ↔ app/env consistency and parses migration
+  0011 for launched-site slug/id/domain parity. Non-launch sites are deliberately
+  excluded from seed parity until their real domains are approved.
 - GitHub CLI authentication is working as `hashhaam`. The account has `push` but not `admin/maintain` permission. API checks confirmed:
   - `main` has no branch protection and no repository/org ruleset.
   - creating `staging` and `production` Environments returns `403 Must have admin rights to Repository`.

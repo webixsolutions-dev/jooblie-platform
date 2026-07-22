@@ -36,7 +36,7 @@ jooblie-platform/                     (GitHub: webixsolutions-dev/jooblie-platfo
 │  ├─ ui/                 # @jooblie/ui        (see §2)
 │  └─ config/             # @jooblie/config    (tsconfig, eslint, tailwind preset)
 ├─ supabase/
-│  ├─ migrations/         # 0001…0014 (approved breakdown)
+│  ├─ migrations/         # 0001…0013 (approved breakdown after seed resequencing)
 │  ├─ functions/          # email-dispatch/, account-delete/
 │  ├─ seed/               # seed_dev_users.sql (dev/staging only)
 │  └─ config.toml
@@ -141,7 +141,7 @@ Rule (Rules.md-bound): service-role key sirf do jagah exist karta hai — Edge F
    e. RLS regression suite: pgTAP/psql scripts asserting the Legacy Remediation
       Map checks (anon profiles = 0 rows, anon job INSERT fails, unrelated-recruiter
       resume SELECT fails, seeker applied/expired job visible, …)
-4. site-registry ↔ seed cross-check script (slugs/ids/domains match 0014 seed)
+4. site-registry ↔ seed cross-check script (launched-site slugs/ids/domains match 0011 seed)
 5. build affected apps      turbo run build --filter=...[origin/main]
 ```
 
@@ -179,7 +179,9 @@ Rule (Rules.md-bound): service-role key sirf do jagah exist karta hai — Edge F
 
 ## 6. Local Development
 
-- `supabase start` per dev (Docker) — full local stack; `db reset` = truth from migrations + dev seed users.
+- `supabase start` per dev (Docker) — full local stack; `db reset` = migration truth
+  only. Apply `supabase/seed/seed_dev_users.sql` explicitly to disposable local/staging
+  databases; it is intentionally excluded from CI resets and production `db push`.
 - `pnpm dev --filter=it-jobs` (ya multiple) — Vite dev servers, local Supabase URL.
 - Inbucket (local Supabase mail-catcher) auth-email flows ke liye — Resend dev mein untouched.
 - Edge Functions: `supabase functions serve` local; pg_net local caveat (webhook localhost target) documented in Rules.md dev notes.

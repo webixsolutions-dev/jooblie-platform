@@ -63,7 +63,7 @@ Har PR mein applicable checklist filled ho:
 | Edge Function | `functions serve` local test with sample payload · idempotency case (email-dispatch: duplicate post → single send) |
 | nginx/prerender | staging deploy → curl with bot UA (JSON-LD + canonical present) AND normal UA (SPA served) · admin vhost NOT prerendered check |
 | CI workflow | run on branch via workflow_dispatch before merge |
-| Seed change (`0014`/registry) | site-registry cross-check script green |
+| Seed change (`0011`/registry) | site-registry cross-check script green |
 
 **R5.1** "IDE/agent ne bola theek hai" ≠ verification. Verification = command output / screenshot / test result jo PR mein paste ho. (Standing practice: never trust IDE self-diagnosis.)
 

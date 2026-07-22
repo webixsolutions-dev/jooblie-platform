@@ -14,7 +14,7 @@
 | 0.2 CI skeleton | `ci.yml` per Architecture §5.1 steps 1–2 + 4–5 (db-gate lands in 0.3); branch protection on `main`; GitHub Environments (staging/production shells, production required-reviewer) | PR from scratch branch runs lint/typecheck/build; direct push to main rejected | 0.1 | S |
 | 0.3 CI db-gate | Local Supabase in CI: `db reset` + type-gen diff gate + empty RLS-suite harness (`supabase/tests/` runner wired, zero tests yet) | PR touching `supabase/` triggers gate; deliberately stale types file fails CI (negative test performed once, reverted) | 0.2 | M |
 
-## Phase 1 — Database (migrations 0001→0014, grouped; each group = slice)
+## Phase 1 — Database (migrations 0001→0013, grouped; each group = slice)
 
 Har slice: migration files + pgTAP/psql tests same PR (Rules R5). Types regenerate har slice pe. **RLS-heavy slices (1.3–1.6) = R4 risky → mandatory second-human review (ADJ 1).**
 
@@ -27,8 +27,8 @@ Har slice: migration files + pgTAP/psql tests same PR (Rules R5). Types regenera
 | 1.5 Jobs ⚠ | 0007 | jobs (FTS generated column, all indexes incl. FIX 4 composite), job_sites + **visibility trigger (origin+Jooblie contract)**, status machine, RLS incl. FIX 1 seeker-select | pgTAP: insert on partner-origin → exactly 2 junction rows, Jooblie-origin → 1; client status write fails; illegal transitions raise; seeker sees own applied/saved expired job (FIX 1) — applied-path test lands with 1.6, saved-path here | 1.4 | L |
 | 1.6 Applications ⚠ | 0008 | applications (UNIQUE job+applicant), transition trigger (withdrawn=seeker-only), saved_jobs, job_views (FIX 2 guards: with_check, viewed_on dedupe, anon throttle), RLS incl. recruiter→applicant-profile EXISTS policy | pgTAP: duplicate apply = constraint error; recruiter can't set withdrawn; seeker can't set shortlisted; unrelated recruiter sees zero applications/profiles; view spoof (viewer_id ≠ auth.uid) fails | 1.5 | L |
 | 1.7 Notify + audit | 0009–0010 | notifications (deep-link site_id rule + **FIX B deleted-recipient guard** baked in triggers), FIX 3 all-members fan-out, activity_log + all AFTER-triggers, append-only construction | pgTAP: status change → notification site_id = applied_via; new applicant → N rows for N members; deleted-status recipient → 0 rows; activity_log UPDATE/DELETE fails for every role | 1.6 | M |
-| 1.8 Config + cron + storage ⚠ | 0011–0013 | platform_config seeds, rate-limit BEFORE-triggers (rolling 24h), pg_cron expiry + reminder + email-retry sweep, **storage buckets + policies (private resumes, signed-URL model)** | pgTAP: 21st apply in 24h raises clean error code; anon resume GET fails; unrelated recruiter resume SELECT fails; applied-to recruiter succeeds (remediation #1/#2 regression); referenced-resume DELETE blocked | 1.7 | L |
-| 1.9 Seeds | 0014 + dev seed | 7 sites rows (fixed IDs, real domains), **taxonomy from Hasham's list** (input needed — flag), dev users file | site-registry cross-check green; `db reset` end-state = full backend (Acceptance #10) | 1.8 | S |
+| 1.9 Seeds (resequenced) | 0011 + dev seed | 7 fixed site rows; approved 5-sector/38-category taxonomy; explicit local/staging users, companies, and jobs seed | taxonomy reviewed row-by-row; site-registry launched-site cross-check green; `db reset` clean | 1.7 | S |
+| 1.8-slim Config + cron + storage ⚠ | 0012–0013 | platform_config seeds, rate-limit BEFORE-triggers (rolling 24h), pg_cron expiry + reminder + email-retry sweep, **storage buckets + policies (private resumes, signed-URL model)** | pgTAP: 21st apply in 24h raises clean error code; anon resume GET fails; unrelated recruiter resume SELECT fails; applied-to recruiter succeeds (remediation #1/#2 regression); referenced-resume DELETE blocked | 1.9 | L |
 
 **Phase 1 exit:** RLS suite = executable Legacy Remediation Map; full backend from `db reset` alone.
 
@@ -78,7 +78,7 @@ Har slice: migration files + pgTAP/psql tests same PR (Rules R5). Types regenera
 | LB2 | **Restore rehearsal #1** (NFR7): DB restore to scratch project + storage restore + frontend re-point, timed, runbook corrected | Rehearsal report committed (`infra/scripts/restore-runbook.md` updated with actuals) | 5.4 | M |
 | LB3 | **C6: Production Pro + daily backups + PITR enabled** | Dashboard state matches checklist; PITR window confirmed | — | S |
 | LB4 | **Production config checklist full pass** (C1 production domains allowlist, C2/C3 sender, C4/C5 secrets, C7, C8) | Checklist PR signed off; signup/reset tested on 2 production domains | 5.5 | S |
-| LB5 | **Seed taxonomy final** (Hasham's list in 0014) + sites rows on real production domains | Taxonomy reviewed row-by-row by Hasham; registry cross-check green on production build | 1.9 | S |
+| LB5 | **Seed taxonomy final** (approved in 0011) + launched-site production domains | Taxonomy reviewed row-by-row by Hasham; launched-site registry cross-check green on production build | 1.9 | S |
 | LB6 | Full acceptance sweep: PRD §8 items 1–11 executed on production (pre-DNS or maintenance window) | Signed checklist in repo | all | M |
 
 ## Phase 7 — Post-launch / v2 backlog (from SystemDesign §11, priority-ordered proposal)
@@ -102,5 +102,8 @@ Har slice: migration files + pgTAP/psql tests same PR (Rules R5). Types regenera
 
 - Critical path: 0 → 1 → (2 ∥ 3) → 4 → 5 → 6. Phase 2 and 3 parallelize across Hasham/Babar/agents; Phase 1 is intentionally serial (each group builds on prior objects, one verified step at a time).
 - ⚠ marks R4-risky slices → mandatory second-human review (Rules R3.1 exception), stop-before-commit protocol.
-- **Open input needed from Hasham (blocking 1.9/LB5):** initial taxonomy list (sectors → categories) aur partner sites ke final production domain strings.
+- **Seed resequencing:** slice 1.9 landed as migration 0011 ahead of 1.8 so frontend
+  work can use stable site/taxonomy IDs. Config/cron/storage now occupy 0012–0013.
+- **Remaining domain input:** Jooblie is the only launched site. Approve each of the six
+  non-launch production domains before flipping its registry `launched` flag.
 - Rough total: ~19 slices + 6 blockers; L=9, M=13, S=9 → realistic calendar with parallelization: **6–8 focused weeks** to LB6, agent-assisted. Ye estimate hai, commitment nahi — slice-level verification pace decide karegi.
