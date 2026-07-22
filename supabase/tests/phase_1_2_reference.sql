@@ -240,16 +240,6 @@ begin
 end;
 $$;
 
-do $$
-begin
-  if exists (select 1 from public.sectors)
-     or exists (select 1 from public.categories)
-     or exists (select 1 from public.sites) then
-    raise exception 'Phase 1.2 must not seed reference data';
-  end if;
-end;
-$$;
-
 \echo 'Asserting the sites site_type/sector_id check constraint'
 
 begin;
@@ -362,9 +352,9 @@ declare
   statement text;
   affected_rows integer;
 begin
-  if (select count(*) from public.sectors) <> 1
-     or (select count(*) from public.categories) <> 1
-     or (select count(*) from public.sites) <> 3 then
+  if (select count(*) from public.sectors) <> 6
+     or (select count(*) from public.categories) <> 39
+     or (select count(*) from public.sites) <> 10 then
     raise exception 'anon cannot read all reference rows';
   end if;
 
@@ -416,9 +406,9 @@ declare
   statement text;
   affected_rows integer;
 begin
-  if (select count(*) from public.sectors) <> 1
-     or (select count(*) from public.categories) <> 1
-     or (select count(*) from public.sites) <> 3 then
+  if (select count(*) from public.sectors) <> 6
+     or (select count(*) from public.categories) <> 39
+     or (select count(*) from public.sites) <> 10 then
     raise exception 'authenticated cannot read all reference rows';
   end if;
 

@@ -463,9 +463,6 @@ $$;
 
 begin;
 
-insert into public.sites (id, slug, name, domain, site_type)
-values (1, 'jooblie', 'Jooblie', 'jooblie.test', 'aggregator');
-
 insert into auth.users (id, email, raw_user_meta_data)
 values
   ('b0000000-0000-4000-8000-000000000001', 'owner@phase14.test',

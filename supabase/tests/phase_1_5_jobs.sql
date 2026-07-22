@@ -191,16 +191,8 @@ $$;
 
 begin;
 
-insert into public.sectors (id, slug, name, sort_order)
-values (1, 'technology', 'Technology', 1);
-
 insert into public.categories (id, sector_id, slug, name, sort_order)
 values (1, 1, 'software', 'Software', 1);
-
-insert into public.sites (id, slug, name, domain, site_type, sector_id)
-values
-  (1, 'jooblie', 'Jooblie', 'jooblie.phase15.test', 'aggregator', null),
-  (2, 'tech-jobs', 'Tech Jobs', 'tech.phase15.test', 'sector', 1);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values

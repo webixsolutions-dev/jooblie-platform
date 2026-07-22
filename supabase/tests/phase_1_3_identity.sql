@@ -342,15 +342,7 @@ $$;
 
 begin;
 
--- Sites are seeded by migration 0014 (slice 1.9); this transaction stands up
--- the two rows the signup trigger needs and rolls them back at the end.
-insert into public.sectors (id, slug, name, sort_order)
-values (31000, 'test-tech', 'Test Tech', 1);
-
-insert into public.sites (id, slug, name, domain, site_type, sector_id)
-values
-  (1, 'jooblie', 'Jooblie', 'jooblie.test', 'aggregator', null),
-  (31001, 'it-jobs', 'IT Jobs', 'it-jobs.test', 'sector', 31000);
+-- Migration 0011 supplies the fixed Jooblie and IT Jobs rows used by signup.
 
 insert into auth.users (id, email, raw_user_meta_data)
 values
@@ -392,12 +384,12 @@ begin
     select *
     from (
       values
-        ('a0000000-0000-4000-8000-000000000001', 'job_seeker', 31001, 'meta-admin@phase13.test'),
+        ('a0000000-0000-4000-8000-000000000001', 'job_seeker', 3, 'meta-admin@phase13.test'),
         ('a0000000-0000-4000-8000-000000000002', 'job_seeker', 1, 'meta-garbage@phase13.test'),
         ('a0000000-0000-4000-8000-000000000003', 'job_seeker', 1, 'meta-none@phase13.test'),
         ('a0000000-0000-4000-8000-000000000004', 'job_seeker', 1, 'meta-empty@phase13.test'),
         ('a0000000-0000-4000-8000-000000000005', 'job_seeker', 1, 'meta-number@phase13.test'),
-        ('a0000000-0000-4000-8000-000000000006', 'recruiter', 31001, 'meta-recruiter@phase13.test'),
+        ('a0000000-0000-4000-8000-000000000006', 'recruiter', 3, 'meta-recruiter@phase13.test'),
         ('a0000000-0000-4000-8000-000000000007', 'job_seeker', 1, 'meta-seeker@phase13.test'),
         ('a0000000-0000-4000-8000-000000000008', 'job_seeker', 1, 'meta-case@phase13.test'),
         ('a0000000-0000-4000-8000-000000000009', 'job_seeker', 1, 'meta-admin-real@phase13.test')
