@@ -82,6 +82,8 @@ begin
 
   if actual_triggers is distinct from array[
     'jobs_derive_status',
+    'jobs_log_created',
+    'jobs_log_status_changed',
     'jobs_populate_job_sites',
     'jobs_set_updated_at',
     'jobs_validate_status_transition'
