@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.6 (Applications) — COMPLETE
-- **Active slice:** 1.7 — migrations 0009–0010 (notifications + activity_log)
-- **Next slice:** 1.8 — migrations 0011–0013 (config, cron, rate limits + storage)
+- **Phase:** 1.7 (Notifications + activity log) — COMPLETE
+- **Active slice:** 1.8 — migrations 0011–0013 (config, cron, rate limits + storage)
+- **Next slice:** 1.9 — migration 0014 (seed data + cross-checks)
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,6 +34,13 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **Phase 1.7 notifications + audit contract is implemented in migrations 0009–0010.**
+  Notifications are minimal pointer payloads, suppress only deleted recipients, fan out
+  new-applicant events to every company member, and distinguish fresh verification from
+  resubmission with `data.resubmitted`. `activity_log` is append-only, retains company
+  audit rows across company deletion with `ON DELETE SET NULL`, and attributes actors
+  from `auth.uid()` while leaving system/cron writes unattributed. The internal
+  `emit_notification` and `log_activity` helpers are not executable by clients.
 - **Phase 1.6 applications contract is implemented in `0008_applications.sql`.** It
   creates `applications`, `saved_jobs`, and `job_views`; enforces immutable resume
   snapshots and the actor-aware `JB008` application transition graph; completes FIX 1
@@ -48,21 +55,27 @@
 - **FIX 1 is complete in 0008.** `jobs_job_seeker_select` was replaced via DROP/CREATE
   and its own-application / own-saved branches intentionally bypass status,
   soft-delete, and company-suspension filters so seeker dashboards retain context.
-- **DEFERRED — must land in slice 1.7:** `activity_log` plus all job, application,
-  company-verification, and application-status notification/audit writes. Add these by
-  rolling forward the relevant trigger functions; do not edit merged migrations.
 - **DEFERRED — must land in slice 1.8:** application/job-post rolling-24-hour rate
   limits, job_views anonymous throttling, the private resume bucket + signed-URL
-  policies, config-driven expiry, automatic expiry cron, and expiry-reminder cron.
-  The 0007 insert/verification paths intentionally hardcode `interval '60 days'`
-  until `platform_config` exists.
+  policies, config-driven expiry, automatic expiry cron, the `expiry_reminder`
+  notification type, and expiry/reminder cron. The 0007 insert/verification paths
+  intentionally hardcode `interval '60 days'` until `platform_config` exists.
+- **DEFERRED — later:** field-level job edit diffs and recruiter/seeker reads of
+  `activity_log`. The v1 log records lifecycle events; broader audit detail and
+  non-admin read surfaces require separate contracts.
+- **DEFERRED — slice 2.1:** email dispatch, including the privileged writer that sets
+  `notifications.emailed_at`. Migration 0009 supplies the pending-dispatch index only.
+- **DEFERRED — v2:** recruiter-facing notification when a seeker withdraws. In v1 the
+  status-change notification remains applicant-facing only; recruiters see withdrawals
+  in their dashboard. Revisit this with notification digests.
 - **Attribution validation decision — slice 2.1:** 0008 stores
   `applied_via_site_id` / `saved_via_site_id` for attribution but does NOT validate
   either value against `job_sites` membership. When email deep-links are designed in
   2.1, decide whether application/save INSERT needs an EXISTS(job_sites) WITH CHECK.
-- **Phase 1.6 test maintenance:** `phase_1_6_applications.sql` intentionally uses
-  absolute application counts for applicant/recruiter/admin boundaries. Adjust those
-  counts whenever application fixtures are added or removed.
+- **Phase 1.6/1.7 test maintenance:** `phase_1_6_applications.sql` and
+  `phase_1_7_notifications_activity.sql` intentionally use absolute row counts for
+  boundary and fan-out assertions. Adjust those counts whenever their fixtures are
+  added or removed.
 - **DEFERRED — later lifecycle/moderation slice:** recruiter close/renew RPCs, admin
   takedown/restore RPCs, and the job soft-delete RPC. `jobs.deleted_at` has no client
   write path in 0007. The transition trigger already accepts the required legal edges,
@@ -175,8 +188,14 @@
 - Phase 1.2 adds schema-only reference tables in `0004_reference.sql`: `sectors`, `categories`, and `sites`. All three expose one public-read SELECT policy to `anon` and `authenticated`; clients have no INSERT/UPDATE/DELETE policies. Seed rows remain deferred to Phase 1.9 migration `0014`.
 - Phase 1.1 defines all approved helpers in `0003_helpers.sql`; none were deferred. The table-dependent PL/pgSQL bodies resolve `profiles`/`company_members` when called, so do not call those helpers before slices 1.3/1.4 create the referenced tables.
 - Phase 1.1 uses the custom `public.set_updated_at()` trigger function from `0003_helpers.sql`; the `moddatetime` extension is not enabled.
-- The current main-base CI workflow does not contain the Phase 0.3 Supabase DB/type/test gate. This slice is locally verified; restore that CI gate in its own approved scope rather than changing CI here.
-- `.github/workflows/ci.yml` implements the Phase 0.2 PR pipeline: frozen install, affected lint/typecheck, site-registry contract check, and affected builds. `workflow_dispatch` runs the full monorepo.
+- `.github/workflows/ci.yml` now restores the Phase 0.3 Supabase database gate alongside
+  the Phase 0.2 quality pipeline. Database-relevant PRs start and reset local Supabase,
+  verify generated types, and run the cumulative RLS suites. The runner dynamically
+  discovers every `*.sql`/`*.pg` file under `supabase/tests`, sorts the displayed list,
+  and executes each assertion-style script through `psql` with `ON_ERROR_STOP=1`; there
+  is no explicit manifest. These suites are not pgTAP, so do not route them through
+  `supabase test db`/`pg_prove`. `workflow_dispatch` runs both the full monorepo quality
+  gates and database gate.
 - Root CI/config/script files are Turborepo global dependencies, so a root-only PR (including the initial CI PR) verifies all workspaces instead of selecting zero tasks.
 - Local verification passed on 2026-07-17: frozen install; affected-mode selected all workspaces; 25/25 lint+typecheck tasks; site registry (7 public sites + admin); 11/11 build tasks; workflow YAML parse; `git diff --check`.
 - Draft PR #1 (`codex/phase-0-2-ci-skeleton`) ran the real GitHub Actions workflow successfully: `Quality gates` passed in 51 seconds.
