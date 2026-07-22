@@ -34,6 +34,64 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          company_id: string | null
+          created_at: string
+          data: Json
+          entity_id: string | null
+          entity_type: string
+          id: string
+          site_id: number | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          data?: Json
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          site_id?: number | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          data?: Json
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          site_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           applicant_id: string
@@ -430,6 +488,60 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json
+          emailed_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          read_at: string | null
+          site_id: number | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          emailed_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          read_at?: string | null
+          site_id?: number | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          emailed_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          read_at?: string | null
+          site_id?: number | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -616,6 +728,17 @@ export type Database = {
         Returns: boolean
       }
       company_is_suspended: { Args: { _company_id: string }; Returns: boolean }
+      emit_notification: {
+        Args: {
+          _data: Json
+          _entity_id: string
+          _entity_type: string
+          _site_id: number
+          _type: Database["public"]["Enums"]["notification_type"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       has_applied: { Args: { _job_id: string }; Returns: boolean }
       has_saved: { Args: { _job_id: string }; Returns: boolean }
       immutable_arr_join: { Args: { _values: string[] }; Returns: string }
@@ -626,6 +749,17 @@ export type Database = {
       is_suspended: { Args: never; Returns: boolean }
       job_accepts_applications: { Args: { _job_id: string }; Returns: boolean }
       jooblie_site_id: { Args: never; Returns: number }
+      log_activity: {
+        Args: {
+          _action: string
+          _company_id: string
+          _data: Json
+          _entity_id: string
+          _entity_type: string
+          _site_id: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       application_status:
@@ -648,6 +782,12 @@ export type Database = {
         | "internship"
         | "seasonal"
       job_status: "pending_review" | "active" | "closed" | "expired" | "removed"
+      notification_type:
+        | "application_status_changed"
+        | "job_new_applicant"
+        | "company_verification_request"
+        | "company_verified"
+        | "company_rejected"
       salary_period: "hourly" | "weekly" | "monthly" | "yearly"
       site_type: "aggregator" | "sector" | "audience"
       user_role: "job_seeker" | "recruiter" | "admin"
@@ -804,6 +944,13 @@ export const Constants = {
         "seasonal",
       ],
       job_status: ["pending_review", "active", "closed", "expired", "removed"],
+      notification_type: [
+        "application_status_changed",
+        "job_new_applicant",
+        "company_verification_request",
+        "company_verified",
+        "company_rejected",
+      ],
       salary_period: ["hourly", "weekly", "monthly", "yearly"],
       site_type: ["aggregator", "sector", "audience"],
       user_role: ["job_seeker", "recruiter", "admin"],
