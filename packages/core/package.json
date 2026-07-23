@@ -16,5 +16,8 @@
     "@jooblie/config": "workspace:*",
     "eslint": "9.39.5",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.109.0"
   }
 }
