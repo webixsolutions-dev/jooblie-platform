@@ -1,10 +1,5 @@
 import { getSupabaseClient } from "../client";
-
-function toUserFacingError(error: unknown): Error {
-  return error instanceof Error
-    ? error
-    : new Error("Something went wrong. Please try again.", { cause: error });
-}
+import { toUserFacingError } from "../constants";
 
 export async function getAccessToken(): Promise<string | null> {
   const { data, error } = await getSupabaseClient().auth.getSession();

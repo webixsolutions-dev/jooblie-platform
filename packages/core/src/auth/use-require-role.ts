@@ -1,4 +1,5 @@
-import type { AuthProfile, UserRole } from "./context";
+import type { UserRole } from "../constants";
+import type { AuthProfile } from "./context";
 import { useAuth } from "./use-auth";
 
 export type RequireRoleState =

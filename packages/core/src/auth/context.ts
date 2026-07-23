@@ -3,9 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 
 import type { Database } from "../database.types";
 import type { SiteSlug } from "../site-registry";
-
-export type UserRole = Database["public"]["Enums"]["user_role"];
-export type UserStatus = Database["public"]["Enums"]["user_status"];
+import type { UserRole, UserStatus } from "../constants";
 
 export type AuthProfile = Pick<
   Database["public"]["Tables"]["profiles"]["Row"],

@@ -8,6 +8,7 @@ import {
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 
 import { getSupabaseClient } from "../client";
+import { toUserFacingError } from "../constants";
 import type { Database } from "../database.types";
 import { getRedirectUrl } from "../redirect";
 import {
@@ -20,12 +21,6 @@ import {
 
 const PROFILE_COLUMNS =
   "id, role, status, full_name, default_resume_path" as const;
-
-function toUserFacingError(error: unknown): Error {
-  return error instanceof Error
-    ? error
-    : new Error("Something went wrong. Please try again.", { cause: error });
-}
 
 async function fetchProfile(
   client: SupabaseClient<Database>,
