@@ -22,9 +22,11 @@
     "vitest": "4.1.10"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.109.0"
+    "@supabase/supabase-js": "2.109.0",
+    "@tanstack/react-query": "5.101.4"
   },
   "peerDependencies": {
+    "@tanstack/react-query": "5.101.4",
     "react": "^19.2.7"
   }
 }
