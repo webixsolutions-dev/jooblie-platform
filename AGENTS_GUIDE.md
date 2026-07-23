@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 1.9 (Seeds, resequenced ahead of config/storage) — COMPLETE
-- **Active slice:** 1.8-slim — migrations 0012–0013 (config, cron, rate limits + storage)
-- **Next slice:** 2.1 (email dispatch), after 1.8-slim completes Phase 1
+- **Phase:** 3.1 (`@jooblie/core` client + auth) — COMPLETE
+- **Active slice:** 3.2 — core query hooks
+- **Next slice:** 3.3 — framework-agnostic SEO helpers
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,6 +34,44 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **Phase 3.1 establishes the only frontend Supabase/auth path.** Apps must import the
+  memoized client, `AuthProvider`, `useAuth`, and exact-match `useRequireRole` guard only
+  from `@jooblie/core`; direct `@supabase/supabase-js` app imports are blocked by the
+  shared ESLint preset. Profile creation remains trigger-only — clients never INSERT
+  into `profiles`. Password-reset and email-change flows are deferred; cross-domain SSO
+  remains v2.
+- **Auth redirects use the active origin, never the site registry domain.**
+  `getRedirectUrl()` returns `window.location.origin + '/auth/callback'`, so local,
+  Vercel, preview, and production builds return to the origin that initiated signup.
+  Supabase Auth checklist C1 must allow `http://localhost:5173/auth/callback`, the
+  deployed Vercel callback URL, and eventually the production-domain callback URL;
+  GoTrue rejects confirmation redirects that are absent from the allowlist. The local
+  callback is configured and the local Site URL is `http://localhost:5173`.
+- **`SiteSlug` and `AppSlug` are deliberately different.** `SiteSlug` is derived from
+  the seven-entry registry and is the only type accepted by real-site helpers and
+  future site-ID query inputs. `AppSlug` adds only `admin` for env/storage identity.
+  Admin is the eighth frontend but has no `sites` row by design; it reads unfiltered
+  through admin RLS and never supplies a `siteId` to query hooks.
+- **The installed React 19.2.7 workspace is authoritative.** References to React 18 in
+  older design context are stale; `@jooblie/core` exposes React as a peer dependency so
+  apps retain ownership of the runtime. Update the broader design docs in a dedicated
+  documentation pass, not by changing runtime code back to React 18.
+- **`@supabase/supabase-js` is pinned to 2.109.0 for the Node 20 toolchain.** That is
+  the newest compatible release in the current line; 2.110+ requires Node 22. Keep the
+  exact pin until the repository engine and CI runtime move together.
+- **Constants and the error-code message map landed in 3.1.** `Phases.md` groups them
+  under 3.2, but the Phase 3.1 handoff explicitly pulled them forward so auth errors and
+  guards share the generated enum contract from their first release. Slice 3.2 should
+  consume these exports rather than recreate them.
+- **1.8-slim remains outstanding even though frontend critical-path work has begun.**
+  `platform_config`, rolling rate limits, cron, and the private resumes bucket/policies
+  still land in migrations 0012–0013 before the apply flow can upload resumes.
+- **DEFERRED seed maintenance:** local GoTrue v2.192 cannot read the current explicit
+  `seed_dev_users.sql` rows while `confirmation_token`, `recovery_token`,
+  `email_change_token_new`, and `email_change` are NULL (`Database error querying
+  schema`). Phase 3.1 smoke verification normalized those four fields to empty strings
+  only in the disposable local database; update the seed file in its own reviewed seed
+  slice rather than coupling that backend fixture change to core auth.
 - **Phase 1.9 seeds were deliberately resequenced ahead of 1.8 in migration 0011.**
   The approved global taxonomy contains 5 sectors and 38 categories. The
   `skilled-trades-construction` category belongs to the unmapped `general-services`
