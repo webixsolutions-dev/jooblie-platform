@@ -29,6 +29,18 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "@typescript-eslint/no-empty-object-type": "off",
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@supabase/supabase-js",
+              message:
+                "Import Supabase APIs from @jooblie/core; the shared client is the only app client.",
+            },
+          ],
+        },
+      ],
       "react-refresh/only-export-components": [
         "warn",
         {

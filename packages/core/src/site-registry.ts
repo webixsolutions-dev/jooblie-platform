@@ -1,14 +1,14 @@
 export type SiteRegistryEntry = {
-  id: number;
-  slug: string;
-  name: string;
-  domain: string;
-  siteType: "aggregator" | "sector" | "audience";
-  themeKey: string;
-  launched: boolean;
+  readonly id: number;
+  readonly slug: string;
+  readonly name: string;
+  readonly domain: string;
+  readonly siteType: "aggregator" | "sector" | "audience";
+  readonly themeKey: string;
+  readonly launched: boolean;
 };
 
-export const siteRegistry: SiteRegistryEntry[] = [
+export const siteRegistry = [
   {
     id: 1,
     slug: "jooblie",
@@ -72,4 +72,33 @@ export const siteRegistry: SiteRegistryEntry[] = [
     themeKey: "newcomers",
     launched: false,
   },
-];
+] as const satisfies readonly SiteRegistryEntry[];
+
+export type SiteSlug = (typeof siteRegistry)[number]["slug"];
+export type AppSlug = SiteSlug | "admin";
+
+export function isSiteSlug(slug: string): slug is SiteSlug {
+  return siteRegistry.some((site) => site.slug === slug);
+}
+
+export function isAppSlug(slug: string): slug is AppSlug {
+  return slug === "admin" || isSiteSlug(slug);
+}
+
+export function getSiteBySlug(slug: SiteSlug): SiteRegistryEntry {
+  const site = siteRegistry.find((entry) => entry.slug === slug);
+
+  if (!site) {
+    throw new Error(`Site registry invariant violated for slug: ${slug}`);
+  }
+
+  return site;
+}
+
+export function getSiteById(id: number): SiteRegistryEntry | undefined {
+  return siteRegistry.find((site) => site.id === id);
+}
+
+export function resolveSite(appSlug: AppSlug): SiteRegistryEntry | null {
+  return appSlug === "admin" ? null : getSiteBySlug(appSlug);
+}
