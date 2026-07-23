@@ -1,9 +1,9 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 3.1 (`@jooblie/core` client + auth) — COMPLETE
-- **Active slice:** 3.2 — core query hooks
-- **Next slice:** 3.3 — framework-agnostic SEO helpers
+- **Phase:** 3.2 (`@jooblie/core` query hooks) — COMPLETE
+- **Active slice:** Phase 4 — Jooblie app wiring (Jooblie-only launch sequence)
+- **Blocking follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -34,6 +34,28 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **Phase 3.2 is the complete launch query surface.** `@jooblie/core` now exports one
+  QueryClient factory, one typed query-key registry, and the Jooblie/seeker/recruiter
+  hooks for jobs, taxonomy, applications, saved jobs, companies, applicants, and
+  notifications. Site filtering remains explicit: callers pass `siteId`, Jooblie
+  passes `null`, and partner filtering uses the empirically verified
+  `jobs → job_sites!inner(site_id)` PostgREST embed. Do not add app-local variants.
+- **Jobs have UUID detail routes and no slug column.** The only detail hook is
+  `useJob(id: string)` and Phase 4 routes are `/jobs/:uuid`. Whether SEO-facing URLs
+  add an ID plus a cosmetic title suffix is a Phase 4 / 3.3 decision; never add or
+  emulate a database slug for jobs.
+- **Company logos and resumes remain raw storage paths.** Query shapes intentionally
+  select `companies.logo_path` and application `resume_path`, but core does not turn
+  either into a public or signed URL. Logo rendering, resume upload, and signed resume
+  access remain blocked on 1.8-slim bucket/policy work.
+- **TanStack Query is exact-pinned at 5.101.4** in both `dependencies` and
+  `peerDependencies` of `@jooblie/core`. It is the current v5 release, supports React
+  19, and keeps apps on the same QueryClient/cache instance. Do not add a second app
+  copy or ad-hoc query keys.
+- **Reference seed state:** migration 0011 seeds all 38 categories and all 7 sites
+  with `is_active = true`. Category queries still apply the nullable-safe
+  `is_active IS NULL OR is_active = true` filter so a future inactive row stays out;
+  sectors have no `is_active` column.
 - **Phase 3.1 establishes the only frontend Supabase/auth path.** Apps must import the
   memoized client, `AuthProvider`, `useAuth`, and exact-match `useRequireRole` guard only
   from `@jooblie/core`; direct `@supabase/supabase-js` app imports are blocked by the
