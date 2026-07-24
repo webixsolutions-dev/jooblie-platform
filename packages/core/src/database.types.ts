@@ -723,6 +723,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      can_access_resume: { Args: { _path: string }; Returns: boolean }
+      can_delete_verification_document: {
+        Args: { _segment: string }
+        Returns: boolean
+      }
       can_recruiter_view_applicant: {
         Args: { _applicant_id: string }
         Returns: boolean
@@ -745,7 +750,9 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_company_member: { Args: { _company_id: string }; Returns: boolean }
       is_company_member_for_job: { Args: { _job_id: string }; Returns: boolean }
+      is_company_member_path: { Args: { _segment: string }; Returns: boolean }
       is_recruiter: { Args: never; Returns: boolean }
+      is_resume_referenced: { Args: { _path: string }; Returns: boolean }
       is_suspended: { Args: never; Returns: boolean }
       job_accepts_applications: { Args: { _job_id: string }; Returns: boolean }
       jooblie_site_id: { Args: never; Returns: number }
