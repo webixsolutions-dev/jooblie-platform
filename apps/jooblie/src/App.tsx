@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { DashboardLayout } from "./components/DashboardLayout";
 import { Layout } from "./components/Layout";
 import { RequireRole } from "./components/RequireRole";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
@@ -30,63 +31,51 @@ export function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/auth/check-email" element={<CheckEmailPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+        <Route
+          element={
+            <RequireRole role="job_seeker">
+              <DashboardLayout role="job_seeker" />
+            </RequireRole>
+          }
+        >
           <Route
             path="/dashboard"
-            element={
-              <RequireRole role="job_seeker">
-                <DashboardPage />
-              </RequireRole>
-            }
+            element={<DashboardPage />}
           />
           <Route
             path="/saved"
-            element={
-              <RequireRole role="job_seeker">
-                <DashboardPage focus="saved" />
-              </RequireRole>
-            }
+            element={<DashboardPage focus="saved" />}
           />
+        </Route>
+        <Route
+          element={
+            <RequireRole role="recruiter">
+              <DashboardLayout role="recruiter" />
+            </RequireRole>
+          }
+        >
           <Route
             path="/recruiter"
-            element={
-              <RequireRole role="recruiter">
-                <RecruiterDashboardPage />
-              </RequireRole>
-            }
+            element={<RecruiterDashboardPage />}
           />
           <Route
             path="/recruiter/company/new"
-            element={
-              <RequireRole role="recruiter">
-                <CompanyCreationPage />
-              </RequireRole>
-            }
+            element={<CompanyCreationPage />}
           />
           <Route
             path="/recruiter/jobs"
-            element={
-              <RequireRole role="recruiter">
-                <RecruiterJobsPage />
-              </RequireRole>
-            }
+            element={<RecruiterJobsPage />}
           />
           <Route
             path="/recruiter/jobs/new"
-            element={
-              <RequireRole role="recruiter">
-                <RecruiterJobFormPage />
-              </RequireRole>
-            }
+            element={<RecruiterJobFormPage />}
           />
           <Route
             path="/recruiter/jobs/:id/applicants"
-            element={
-              <RequireRole role="recruiter">
-                <JobApplicantsPage />
-              </RequireRole>
-            }
+            element={<JobApplicantsPage />}
           />
-          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </ErrorBoundary>

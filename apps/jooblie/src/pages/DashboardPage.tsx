@@ -82,29 +82,6 @@ export function DashboardPage({
         saved for later.
       </p>
 
-      <nav className="mt-7 flex gap-3" aria-label="Dashboard sections">
-        <Link
-          className={`rounded-md px-4 py-2 text-sm font-bold ${
-            focus === "applications"
-              ? "bg-brandNavy text-white"
-              : "border border-border bg-white"
-          }`}
-          to="/dashboard"
-        >
-          Applications
-        </Link>
-        <Link
-          className={`rounded-md px-4 py-2 text-sm font-bold ${
-            focus === "saved"
-              ? "bg-brandNavy text-white"
-              : "border border-border bg-white"
-          }`}
-          to="/saved"
-        >
-          Saved jobs
-        </Link>
-      </nav>
-
       {hasError ? (
         <div
           className="mt-7 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700"
