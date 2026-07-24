@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 221 83% 53%;
+    --color-secondary: 215 20% 65%;
+    --color-accent: 199 89% 48%;
+    --color-background: 210 40% 98%;
+    --color-foreground: 222 47% 11%;
+    --color-muted: 215 16% 47%;
+    --color-border: 214 32% 91%;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply m-0 min-h-screen min-w-80 bg-background text-foreground antialiased;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+}
