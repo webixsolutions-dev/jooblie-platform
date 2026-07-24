@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useAuth, type SignUpRole } from "@jooblie/core";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { getAuthErrorMessage } from "../auth-errors";
 import {
@@ -14,10 +14,13 @@ const MIN_PASSWORD_LENGTH = 6;
 export function SignupPage() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<SignUpRole>("job_seeker");
+  const [role, setRole] = useState<SignUpRole>(
+    searchParams.get("role") === "recruiter" ? "recruiter" : "job_seeker",
+  );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 

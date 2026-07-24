@@ -5,6 +5,7 @@
 @layer base {
   :root {
     --color-primary: 221 83% 53%;
+    --color-brand-navy: 222 57% 18%;
     --color-secondary: 215 20% 65%;
     --color-accent: 199 89% 48%;
     --color-background: 210 40% 98%;
@@ -18,7 +19,7 @@
   }
 
   body {
-    @apply m-0 min-h-screen min-w-80 bg-background text-foreground antialiased;
+    @apply m-0 min-h-screen min-w-80 bg-background font-sans text-foreground antialiased;
   }
 
   a {
@@ -27,7 +28,8 @@
 
   button,
   input,
-  select {
+  select,
+  textarea {
     font: inherit;
   }
 }
