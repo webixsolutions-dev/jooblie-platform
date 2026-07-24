@@ -3,7 +3,7 @@
 ## Current State
 - **Phase:** 3.2 (`@jooblie/core` query hooks) — COMPLETE
 - **Active slice:** Phase 4 — Jooblie app wiring (Jooblie-only launch sequence)
-- **Blocking follow-up:** 1.8-slim — private resumes/company-assets storage
+- **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -47,7 +47,20 @@
 - **Company logos and resumes remain raw storage paths.** Query shapes intentionally
   select `companies.logo_path` and application `resume_path`, but core does not turn
   either into a public or signed URL. Logo rendering, resume upload, and signed resume
-  access remain blocked on 1.8-slim bucket/policy work.
+  access remain Phase 4 UI work; migration 0012 supplies their bucket/policy boundary.
+- **Storage object names have a binding first-segment ownership contract.** Phase 4
+  upload code must use bucket `resumes` with object name
+  `{user_id}/{uuid}-{filename}`, bucket `company-logos` with object name
+  `{company_id}/{uuid}-{filename}`, and bucket `verification-docs` with object name
+  `{company_id}/{uuid}-{filename}`. Storage RLS derives ownership from
+  `(storage.foldername(name))[1]`; a different first segment is denied. Resumes and
+  verification documents are private and must be accessed only through short-lived
+  signed URLs, never public URLs.
+- **Deleting a default resume requires clearing its profile pointer.**
+  `is_resume_referenced(path)` intentionally protects only immutable
+  `applications.resume_path` audit snapshots. Phase 4 must set
+  `profiles.default_resume_path` to `NULL` when deleting that unreferenced object so
+  the profile does not retain a dangling convenience pointer.
 - **TanStack Query is exact-pinned at 5.101.4** in both `dependencies` and
   `peerDependencies` of `@jooblie/core`. It is the current v5 release, supports React
   19, and keeps apps on the same QueryClient/cache instance. Do not add a second app
@@ -85,9 +98,11 @@
   under 3.2, but the Phase 3.1 handoff explicitly pulled them forward so auth errors and
   guards share the generated enum contract from their first release. Slice 3.2 should
   consume these exports rather than recreate them.
-- **1.8-slim remains outstanding even though frontend critical-path work has begun.**
-  `platform_config`, rolling rate limits, cron, and the private resumes bucket/policies
-  still land in migrations 0012–0013 before the apply flow can upload resumes.
+- **1.8-slim storage is complete in migration 0012.** It creates the private
+  `resumes` and `verification-docs` buckets, public-read `company-logos`, exact-path
+  resume access, referenced-resume immutability, company-member write boundaries, and
+  the targeted storage policy suite. Phase 4 may now implement uploads against the
+  binding path and signed-URL contracts above.
 - **DEFERRED seed maintenance:** local GoTrue v2.192 cannot read the current explicit
   `seed_dev_users.sql` rows while `confirmation_token`, `recovery_token`,
   `email_change_token_new`, and `email_change` are NULL (`Database error querying
@@ -126,11 +141,11 @@
 - **FIX 1 is complete in 0008.** `jobs_job_seeker_select` was replaced via DROP/CREATE
   and its own-application / own-saved branches intentionally bypass status,
   soft-delete, and company-suspension filters so seeker dashboards retain context.
-- **DEFERRED — must land in slice 1.8:** application/job-post rolling-24-hour rate
-  limits, job_views anonymous throttling, the private resume bucket + signed-URL
-  policies, config-driven expiry, automatic expiry cron, the `expiry_reminder`
-  notification type, and expiry/reminder cron. The 0007 insert/verification paths
-  intentionally hardcode `interval '60 days'` until `platform_config` exists.
+- **DEFERRED — post-launch:** `platform_config`; application/job-post rolling-24-hour
+  rate limits; `job_views` anonymous throttling; and all `pg_cron` jobs, including
+  expiry, expiry-reminder, and email-retry sweep. Their deferred consumers include the
+  `expiry_reminder` notification type. The 0007 insert/verification paths intentionally
+  hardcode `interval '60 days'` until `platform_config` lands.
 - **DEFERRED — later:** field-level job edit diffs and recruiter/seeker reads of
   `activity_log`. The v1 log records lifecycle events; broader audit detail and
   non-admin read surfaces require separate contracts.
