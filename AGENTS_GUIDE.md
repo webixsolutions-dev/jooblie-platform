@@ -1,8 +1,8 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 4.2b (Jooblie browsing + seeker apply/dashboard) — COMPLETE
-- **Active slice:** Phase 4.2c — Jooblie recruiter flows
+- **Phase:** 4.2c (Jooblie recruiter flows) — COMPLETE
+- **Active slice:** Production deployment
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Repo:** webixsolutions-dev/jooblie-platform
 
@@ -51,8 +51,8 @@
   `recruiter`. Unauthenticated guards send users to `/login?next=<pathname>`, and login
   accepts only same-origin paths beginning with one `/` (never `//`). Phase 4.2b
   replaced `/jobs`, `/jobs/:id`, `/dashboard`, `/saved`, and the home page while
-  preserving these auth boundaries and the SPA rewrite. Phase 4.2c should replace only
-  the recruiter placeholders.
+  preserving these auth boundaries and the SPA rewrite. Phase 4.2c replaced the
+  recruiter placeholders with company creation, job management, and applicant flows.
 - **Phase 3.2 is the complete launch query surface.** `@jooblie/core` now exports one
   QueryClient factory, one typed query-key registry, and the Jooblie/seeker/recruiter
   hooks for jobs, taxonomy, applications, saved jobs, companies, applicants, and
@@ -66,6 +66,24 @@
   app-local profile queries are forbidden. Add a reviewed core hook before offering
   “use my saved résumé” or “save as default”; do not ship either convenience until
   then.
+- **Insert-returning must respect trigger timing.** A table whose SELECT visibility
+  depends on a row created by an AFTER INSERT trigger cannot use
+  `insert().select()`: Postgres evaluates RETURNING against SELECT RLS before the AFTER
+  trigger fires. `companies` is the known case, because owner membership is created by
+  `on_company_created`; core inserts first and fetches the membership afterward.
+- **DEFERRED — recruiter job applicant counts:** `useMyJobs` does not return an
+  aggregate applicant count. Slice 4.2c intentionally shows “View applicants” and the
+  applicants page count instead of issuing one full `useJobApplicants` query per job.
+  Add a scoped core aggregate hook before showing per-job counts in the recruiter list.
+- **DEFERRED — context-aware unique-violation messages:** the core error map currently
+  maps every Postgres `23505` to the duplicate-application message. Slice 4.2c inspects
+  `error.cause.code` only in the company form to show the correct duplicate-name text.
+  Core needs operation-aware `23505` mapping before other unique constraints use that
+  shared message.
+- **DEFERRED — rejected company resubmission:** rejected recruiters can see
+  `companies.rejection_reason`, but no company-edit mutation or UI exists. Slice 4.2c
+  directs them to support and blocks further posting. Add a narrow reviewed company
+  update/resubmit hook before enabling self-service corrections.
 - **Jobs have UUID detail routes and no slug column.** The only detail hook is
   `useJob(id: string)` and Phase 4 routes are `/jobs/:uuid`. Whether SEO-facing URLs
   add an ID plus a cosmetic title suffix is a Phase 4 / 3.3 decision; never add or
@@ -219,6 +237,11 @@
   through `companies_recruiter_update`, and from 1.5 onward that would auto-activate
   their pending jobs — self-service job posting with no review. There is deliberately
   **no `companies_admin_update` policy**; do not add one.
+- **Pending-job activation belongs to the admin verification RPC.**
+  `admin_set_company_verification(...)` activates a company's pending jobs when the
+  company is verified; there is no company-table trigger for that side effect. A direct
+  SQL update of `companies.verification_status` changes only the company, so admin and
+  local verification flows must call the RPC as an authenticated admin.
 - The companies INSERT grant is **column-scoped** (`name, website, registration_number,
   verification_document_path, logo_path, description, created_by`) so a recruiter cannot
   create a company that is already `verified`/`active` — the protected columns cannot
