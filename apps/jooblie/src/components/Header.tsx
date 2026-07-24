@@ -16,10 +16,10 @@ export function Header() {
 
   const handleSignOut = async () => {
     setSigningOut(true);
+    navigate("/", { replace: true });
 
     try {
       await signOut();
-      navigate("/", { replace: true });
     } finally {
       setSigningOut(false);
     }
