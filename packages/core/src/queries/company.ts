@@ -128,7 +128,7 @@ export async function createCompany(
     throwMutationError({ code: "42501" });
   }
 
-  const { data, error } = await client
+  const { error } = await client
     .from("companies")
     .insert({
       name: input.name,
@@ -139,11 +139,21 @@ export async function createCompany(
       logo_path: input.logoPath ?? null,
       description: input.description ?? null,
       created_by: userData.user.id,
-    })
-    .select()
-    .single();
+    });
 
-  return requireMutationData(data, error);
+  if (error) {
+    throwMutationError(error);
+  }
+
+  const membership = await fetchMyCompany(client);
+
+  if (!membership) {
+    throw new Error(
+      "Company was created, but its owner membership could not be loaded.",
+    );
+  }
+
+  return membership.companies;
 }
 
 export async function createJob(
