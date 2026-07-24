@@ -21,8 +21,13 @@
     @apply m-0 min-h-screen min-w-80 bg-background text-foreground antialiased;
   }
 
+  a {
+    @apply text-inherit;
+  }
+
   button,
-  input {
+  input,
+  select {
     font: inherit;
   }
 }

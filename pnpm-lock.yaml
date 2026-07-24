@@ -189,6 +189,9 @@ importers:
       '@jooblie/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@tanstack/react-query':
+        specifier: 5.101.4
+        version: 5.101.4(react@19.2.7)
       react:
         specifier: 19.2.7
         version: 19.2.7
