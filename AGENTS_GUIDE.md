@@ -1,8 +1,8 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 4.2a (Jooblie shell + authentication) — COMPLETE
-- **Active slice:** Phase 4.2b — Jooblie job search + job detail
+- **Phase:** 4.2b (Jooblie browsing + seeker apply/dashboard) — COMPLETE
+- **Active slice:** Phase 4.2c — Jooblie recruiter flows
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Repo:** webixsolutions-dev/jooblie-platform
 
@@ -49,15 +49,23 @@
 - **Jooblie role routing is exact and return paths are local-only.** `/dashboard` and
   `/saved` require `job_seeker`; `/recruiter` and recruiter job placeholders require
   `recruiter`. Unauthenticated guards send users to `/login?next=<pathname>`, and login
-  accepts only same-origin paths beginning with one `/` (never `//`). Phase 4.2b should
-  replace the existing `/jobs` and `/jobs/:id` placeholders without changing these
-  auth boundaries or the SPA rewrite.
+  accepts only same-origin paths beginning with one `/` (never `//`). Phase 4.2b
+  replaced `/jobs`, `/jobs/:id`, `/dashboard`, `/saved`, and the home page while
+  preserving these auth boundaries and the SPA rewrite. Phase 4.2c should replace only
+  the recruiter placeholders.
 - **Phase 3.2 is the complete launch query surface.** `@jooblie/core` now exports one
   QueryClient factory, one typed query-key registry, and the Jooblie/seeker/recruiter
   hooks for jobs, taxonomy, applications, saved jobs, companies, applicants, and
-  notifications. Site filtering remains explicit: callers pass `siteId`, Jooblie
-  passes `null`, and partner filtering uses the empirically verified
+  notifications. Site filtering remains explicit: callers pass the current resolved
+  `siteId`; Jooblie passes id `1` (every v1 job is visible there by trigger), and
+  partner filtering uses the empirically verified
   `jobs → job_sites!inner(site_id)` PostgREST embed. Do not add app-local variants.
+- **DEFERRED — default résumé convenience:** slice 4.2b intentionally requires a fresh
+  PDF/DOCX upload for every application. `AuthProfile` can read
+  `profiles.default_resume_path`, but core has no narrow mutation for that column and
+  app-local profile queries are forbidden. Add a reviewed core hook before offering
+  “use my saved résumé” or “save as default”; do not ship either convenience until
+  then.
 - **Jobs have UUID detail routes and no slug column.** The only detail hook is
   `useJob(id: string)` and Phase 4 routes are `/jobs/:uuid`. Whether SEO-facing URLs
   add an ID plus a cosmetic title suffix is a Phase 4 / 3.3 decision; never add or

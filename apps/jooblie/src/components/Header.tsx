@@ -5,8 +5,8 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Container } from "./Container";
 
 const navLinkClass = ({ isActive }: { readonly isActive: boolean }) =>
-  `text-sm font-medium hover:text-primary ${
-    isActive ? "text-primary" : "text-muted"
+  `rounded px-1 py-1 text-sm font-semibold text-white outline-none hover:text-blue-200 focus-visible:ring-2 focus-visible:ring-white ${
+    isActive ? "underline decoration-2 underline-offset-8" : ""
   }`;
 
 export function Header() {
@@ -26,10 +26,10 @@ export function Header() {
   };
 
   return (
-    <header className="border-b border-border bg-white">
-      <Container className="flex min-h-16 flex-wrap items-center justify-between gap-3 py-3">
-        <div className="flex items-center gap-5">
-          <Link className="text-xl font-bold tracking-tight text-primary" to="/">
+    <header className="sticky top-0 z-50 bg-brandNavy text-white shadow-sm">
+      <Container className="flex min-h-16 flex-wrap items-center justify-between gap-x-5 gap-y-3 py-3">
+        <div className="flex items-center gap-6">
+          <Link className="text-2xl font-bold tracking-tight" to="/">
             Jooblie
           </Link>
           <NavLink className={navLinkClass} to="/jobs">
@@ -38,22 +38,28 @@ export function Header() {
         </div>
 
         {initialized && !user ? (
-          <nav className="flex items-center gap-3" aria-label="Account">
+          <nav
+            className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2"
+            aria-label="Main navigation"
+          >
+            <NavLink className={navLinkClass} to="/signup?role=recruiter">
+              For Employers
+            </NavLink>
             <NavLink className={navLinkClass} to="/login">
-              Log in
+              Sign In
             </NavLink>
             <Link
-              className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-blue-600"
               to="/signup"
             >
-              Sign up
+              Sign Up
             </Link>
           </nav>
         ) : null}
 
         {initialized && user && role === "job_seeker" ? (
           <nav
-            className="flex flex-wrap items-center justify-end gap-3"
+            className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2"
             aria-label="Job seeker"
           >
             <NavLink className={navLinkClass} to="/dashboard">
@@ -63,7 +69,7 @@ export function Header() {
               Saved
             </NavLink>
             <button
-              className="text-sm font-medium text-muted hover:text-primary disabled:opacity-60"
+              className="rounded px-1 py-1 text-sm font-semibold text-white hover:text-blue-200 disabled:opacity-60"
               disabled={signingOut}
               onClick={handleSignOut}
               type="button"
@@ -75,17 +81,17 @@ export function Header() {
 
         {initialized && user && role === "recruiter" ? (
           <nav
-            className="flex flex-wrap items-center justify-end gap-3"
+            className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2"
             aria-label="Recruiter"
           >
-            <NavLink className={navLinkClass} to="/recruiter/jobs/new">
-              Post a Job
-            </NavLink>
             <NavLink className={navLinkClass} to="/recruiter/jobs">
               My Jobs
             </NavLink>
+            <NavLink className={navLinkClass} to="/recruiter/jobs/new">
+              Post a Job
+            </NavLink>
             <button
-              className="text-sm font-medium text-muted hover:text-primary disabled:opacity-60"
+              className="rounded px-1 py-1 text-sm font-semibold text-white hover:text-blue-200 disabled:opacity-60"
               disabled={signingOut}
               onClick={handleSignOut}
               type="button"
