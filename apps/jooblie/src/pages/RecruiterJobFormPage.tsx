@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useState,
   type FormEvent,
   type KeyboardEvent,
@@ -6,6 +7,7 @@ import {
 import {
   env,
   resolveSite,
+  useAuth,
   useCategories,
   useCreateJob,
   useMyCompany,
@@ -26,6 +28,33 @@ type CreatedJob = {
   readonly id: string;
   readonly status: JobStatus;
 };
+
+type JobDraft = {
+  readonly title: string;
+  readonly description: string;
+  readonly categoryId: string;
+  readonly employmentType: CreateJobInput["employmentType"];
+  readonly isRemote: boolean;
+  readonly province: string;
+  readonly city: string;
+  readonly salaryMin: string;
+  readonly salaryMax: string;
+  readonly salaryCurrency: string;
+  readonly salaryPeriod: string;
+  readonly skillInput: string;
+  readonly skills: readonly string[];
+};
+
+type JobField =
+  | "title"
+  | "description"
+  | "categoryId"
+  | "salaryMin"
+  | "salaryMax";
+
+type JobFieldErrors = Partial<Record<JobField, string>>;
+
+const jobDraftsByUser = new Map<string, JobDraft>();
 
 const employmentTypes: ReadonlyArray<{
   readonly label: string;
@@ -53,28 +82,153 @@ function parseOptionalNumber(value: string): number | undefined {
   return value.trim() === "" ? undefined : Number(value);
 }
 
+function validateJobFields(
+  title: string,
+  description: string,
+  categoryId: string,
+  salaryMin: string,
+  salaryMax: string,
+): JobFieldErrors {
+  const errors: JobFieldErrors = {};
+  const minimum = parseOptionalNumber(salaryMin);
+  const maximum = parseOptionalNumber(salaryMax);
+
+  if (!title.trim()) {
+    errors.title = "Job title is required.";
+  }
+
+  if (!description.trim()) {
+    errors.description = "Description is required.";
+  }
+
+  if (!categoryId) {
+    errors.categoryId = "Select a category.";
+  }
+
+  if (
+    minimum !== undefined &&
+    (!Number.isFinite(minimum) || minimum < 0)
+  ) {
+    errors.salaryMin = "Enter a valid non-negative salary.";
+  }
+
+  if (
+    maximum !== undefined &&
+    (!Number.isFinite(maximum) || maximum < 0)
+  ) {
+    errors.salaryMax = "Enter a valid non-negative salary.";
+  } else if (
+    minimum !== undefined &&
+    maximum !== undefined &&
+    Number.isFinite(minimum) &&
+    minimum > maximum
+  ) {
+    errors.salaryMax =
+      "Maximum salary must be greater than or equal to minimum salary.";
+  }
+
+  return errors;
+}
+
 export function RecruiterJobFormPage() {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const companyQuery = useMyCompany();
   const sectorsQuery = useSectors();
   const categoriesQuery = useCategories();
   const createJobMutation = useCreateJob();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const savedDraft = userId ? jobDraftsByUser.get(userId) : undefined;
+  const [title, setTitle] = useState(() => savedDraft?.title ?? "");
+  const [description, setDescription] = useState(
+    () => savedDraft?.description ?? "",
+  );
+  const [categoryId, setCategoryId] = useState(
+    () => savedDraft?.categoryId ?? "",
+  );
   const [employmentType, setEmploymentType] =
-    useState<CreateJobInput["employmentType"]>("full_time");
-  const [isRemote, setIsRemote] = useState(false);
-  const [province, setProvince] = useState("");
-  const [city, setCity] = useState("");
-  const [salaryMin, setSalaryMin] = useState("");
-  const [salaryMax, setSalaryMax] = useState("");
-  const [salaryCurrency, setSalaryCurrency] = useState("CAD");
-  const [salaryPeriod, setSalaryPeriod] = useState("");
-  const [skillInput, setSkillInput] = useState("");
-  const [skills, setSkills] = useState<string[]>([]);
+    useState<CreateJobInput["employmentType"]>(
+      () => savedDraft?.employmentType ?? "full_time",
+    );
+  const [isRemote, setIsRemote] = useState(
+    () => savedDraft?.isRemote ?? false,
+  );
+  const [province, setProvince] = useState(
+    () => savedDraft?.province ?? "",
+  );
+  const [city, setCity] = useState(() => savedDraft?.city ?? "");
+  const [salaryMin, setSalaryMin] = useState(
+    () => savedDraft?.salaryMin ?? "",
+  );
+  const [salaryMax, setSalaryMax] = useState(
+    () => savedDraft?.salaryMax ?? "",
+  );
+  const [salaryCurrency, setSalaryCurrency] = useState(
+    () => savedDraft?.salaryCurrency ?? "CAD",
+  );
+  const [salaryPeriod, setSalaryPeriod] = useState(
+    () => savedDraft?.salaryPeriod ?? "",
+  );
+  const [skillInput, setSkillInput] = useState(
+    () => savedDraft?.skillInput ?? "",
+  );
+  const [skills, setSkills] = useState<string[]>(
+    () => savedDraft?.skills.slice() ?? [],
+  );
+  const [touchedFields, setTouchedFields] = useState<
+    Partial<Record<JobField, boolean>>
+  >({});
   const [formError, setFormError] = useState<string | null>(null);
   const [createdJob, setCreatedJob] = useState<CreatedJob | null>(null);
   const company = companyQuery.data?.companies ?? null;
+  const fieldErrors = validateJobFields(
+    title,
+    description,
+    categoryId,
+    salaryMin,
+    salaryMax,
+  );
+  const isFormValid = Object.keys(fieldErrors).length === 0;
+
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
+    jobDraftsByUser.set(userId, {
+      title,
+      description,
+      categoryId,
+      employmentType,
+      isRemote,
+      province,
+      city,
+      salaryMin,
+      salaryMax,
+      salaryCurrency,
+      salaryPeriod,
+      skillInput,
+      skills,
+    });
+  }, [
+    categoryId,
+    city,
+    description,
+    employmentType,
+    isRemote,
+    province,
+    salaryCurrency,
+    salaryMax,
+    salaryMin,
+    salaryPeriod,
+    skillInput,
+    skills,
+    title,
+    userId,
+  ]);
+
+  const markTouched = (field: JobField) => {
+    setTouchedFields((current) => ({ ...current, [field]: true }));
+  };
 
   if (
     companyQuery.isLoading ||
@@ -140,6 +294,13 @@ export function RecruiterJobFormPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
+    setTouchedFields({
+      title: true,
+      description: true,
+      categoryId: true,
+      salaryMin: true,
+      salaryMax: true,
+    });
 
     if (!company) {
       setFormError("Create your company profile before posting a job.");
@@ -149,21 +310,7 @@ export function RecruiterJobFormPage() {
     const minimum = parseOptionalNumber(salaryMin);
     const maximum = parseOptionalNumber(salaryMax);
 
-    if (
-      (minimum !== undefined && !Number.isFinite(minimum)) ||
-      (maximum !== undefined && !Number.isFinite(maximum))
-    ) {
-      setFormError("Salary values must be valid numbers.");
-      return;
-    }
-
-    if (minimum !== undefined && maximum !== undefined && minimum > maximum) {
-      setFormError("Minimum salary cannot be greater than maximum salary.");
-      return;
-    }
-
-    if (!title.trim() || !description.trim() || !categoryId) {
-      setFormError("Complete the title, description, and category fields.");
+    if (!isFormValid) {
       return;
     }
 
@@ -191,6 +338,9 @@ export function RecruiterJobFormPage() {
             undefined) as CreateJobInput["salaryPeriod"],
         skills: submittedSkills,
       });
+      if (userId) {
+        jobDraftsByUser.delete(userId);
+      }
       setCreatedJob({ id: job.id, status: job.status });
     } catch (error) {
       setFormError(
@@ -276,38 +426,82 @@ export function RecruiterJobFormPage() {
 
         <form
           className="mt-8 space-y-6 rounded-xl border border-border bg-white p-6 shadow-sm sm:p-8"
+          noValidate
           onSubmit={handleSubmit}
         >
           <label className="block text-sm font-semibold">
             Job title
             <input
+              aria-describedby={
+                touchedFields.title && fieldErrors.title
+                  ? "job-title-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(
+                touchedFields.title && fieldErrors.title,
+              )}
               className={inputClassName}
               maxLength={180}
               name="title"
+              onBlur={() => markTouched("title")}
               onChange={(event) => setTitle(event.target.value)}
               required
               type="text"
               value={title}
             />
+            {touchedFields.title && fieldErrors.title ? (
+              <span
+                className="mt-1.5 block text-sm font-normal text-red-700"
+                id="job-title-error"
+              >
+                {fieldErrors.title}
+              </span>
+            ) : null}
           </label>
 
           <label className="block text-sm font-semibold">
             Description
             <textarea
+              aria-describedby={
+                touchedFields.description && fieldErrors.description
+                  ? "job-description-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(
+                touchedFields.description && fieldErrors.description,
+              )}
               className={`${inputClassName} min-h-56 resize-y leading-7`}
               name="description"
+              onBlur={() => markTouched("description")}
               onChange={(event) => setDescription(event.target.value)}
               required
               value={description}
             />
+            {touchedFields.description && fieldErrors.description ? (
+              <span
+                className="mt-1.5 block text-sm font-normal text-red-700"
+                id="job-description-error"
+              >
+                {fieldErrors.description}
+              </span>
+            ) : null}
           </label>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="block text-sm font-semibold">
               Category
               <select
+                aria-describedby={
+                  touchedFields.categoryId && fieldErrors.categoryId
+                    ? "job-category-error"
+                    : undefined
+                }
+                aria-invalid={Boolean(
+                  touchedFields.categoryId && fieldErrors.categoryId,
+                )}
                 className={inputClassName}
                 name="categoryId"
+                onBlur={() => markTouched("categoryId")}
                 onChange={(event) => setCategoryId(event.target.value)}
                 required
                 value={categoryId}
@@ -325,6 +519,14 @@ export function RecruiterJobFormPage() {
                   </optgroup>
                 ))}
               </select>
+              {touchedFields.categoryId && fieldErrors.categoryId ? (
+                <span
+                  className="mt-1.5 block text-sm font-normal text-red-700"
+                  id="job-category-error"
+                >
+                  {fieldErrors.categoryId}
+                </span>
+              ) : null}
             </label>
 
             <label className="block text-sm font-semibold">
@@ -393,26 +595,60 @@ export function RecruiterJobFormPage() {
               <label className="text-sm">
                 Minimum
                 <input
+                  aria-describedby={
+                    touchedFields.salaryMin && fieldErrors.salaryMin
+                      ? "job-salary-min-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(
+                    touchedFields.salaryMin && fieldErrors.salaryMin,
+                  )}
                   className={inputClassName}
                   min="0"
                   name="salaryMin"
+                  onBlur={() => markTouched("salaryMin")}
                   onChange={(event) => setSalaryMin(event.target.value)}
                   step="any"
                   type="number"
                   value={salaryMin}
                 />
+                {touchedFields.salaryMin && fieldErrors.salaryMin ? (
+                  <span
+                    className="mt-1.5 block text-sm text-red-700"
+                    id="job-salary-min-error"
+                  >
+                    {fieldErrors.salaryMin}
+                  </span>
+                ) : null}
               </label>
               <label className="text-sm">
                 Maximum
                 <input
+                  aria-describedby={
+                    touchedFields.salaryMax && fieldErrors.salaryMax
+                      ? "job-salary-max-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(
+                    touchedFields.salaryMax && fieldErrors.salaryMax,
+                  )}
                   className={inputClassName}
                   min="0"
                   name="salaryMax"
+                  onBlur={() => markTouched("salaryMax")}
                   onChange={(event) => setSalaryMax(event.target.value)}
                   step="any"
                   type="number"
                   value={salaryMax}
                 />
+                {touchedFields.salaryMax && fieldErrors.salaryMax ? (
+                  <span
+                    className="mt-1.5 block text-sm text-red-700"
+                    id="job-salary-max-error"
+                  >
+                    {fieldErrors.salaryMax}
+                  </span>
+                ) : null}
               </label>
               <label className="text-sm">
                 Currency
@@ -493,7 +729,11 @@ export function RecruiterJobFormPage() {
 
           <button
             className={primaryButtonClassName}
-            disabled={createJobMutation.isPending || hasQueryError}
+            disabled={
+              !isFormValid ||
+              createJobMutation.isPending ||
+              hasQueryError
+            }
             type="submit"
           >
             {createJobMutation.isPending ? "Posting job…" : "Post job"}

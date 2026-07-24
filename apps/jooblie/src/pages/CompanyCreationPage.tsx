@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
+  useAuth,
   useCreateCompany,
   useMyCompany,
 } from "@jooblie/core";
@@ -18,19 +19,105 @@ type ErrorWithCause = Error & {
   };
 };
 
+type CompanyDraft = {
+  readonly name: string;
+  readonly website: string;
+  readonly registrationNumber: string;
+  readonly description: string;
+};
+
+type CompanyField = "name" | "website" | "registrationNumber";
+
+type CompanyFieldErrors = Partial<Record<CompanyField, string>>;
+
+const companyDraftsByUser = new Map<string, CompanyDraft>();
+
 function isDuplicateCompanyError(error: Error): boolean {
   return (error as ErrorWithCause).cause?.code === "23505";
 }
 
+function isValidWebsite(value: string): boolean {
+  if (!/^https?:\/\//i.test(value)) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      Boolean(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function validateCompanyFields(
+  name: string,
+  website: string,
+  registrationNumber: string,
+): CompanyFieldErrors {
+  const errors: CompanyFieldErrors = {};
+
+  if (!name.trim()) {
+    errors.name = "Company name is required.";
+  }
+
+  if (!website.trim()) {
+    errors.website = "Website is required.";
+  } else if (!isValidWebsite(website.trim())) {
+    errors.website = "Enter a valid http or https URL.";
+  }
+
+  if (!registrationNumber.trim()) {
+    errors.registrationNumber = "Registration number is required.";
+  }
+
+  return errors;
+}
+
 export function CompanyCreationPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const companyQuery = useMyCompany();
   const createCompanyMutation = useCreateCompany();
-  const [name, setName] = useState("");
-  const [website, setWebsite] = useState("");
-  const [registrationNumber, setRegistrationNumber] = useState("");
-  const [description, setDescription] = useState("");
+  const savedDraft = userId ? companyDraftsByUser.get(userId) : undefined;
+  const [name, setName] = useState(() => savedDraft?.name ?? "");
+  const [website, setWebsite] = useState(() => savedDraft?.website ?? "");
+  const [registrationNumber, setRegistrationNumber] = useState(
+    () => savedDraft?.registrationNumber ?? "",
+  );
+  const [description, setDescription] = useState(
+    () => savedDraft?.description ?? "",
+  );
+  const [touchedFields, setTouchedFields] = useState<
+    Partial<Record<CompanyField, boolean>>
+  >({});
   const [formError, setFormError] = useState<string | null>(null);
+  const fieldErrors = validateCompanyFields(
+    name,
+    website,
+    registrationNumber,
+  );
+  const isFormValid = Object.keys(fieldErrors).length === 0;
+
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
+    companyDraftsByUser.set(userId, {
+      name,
+      website,
+      registrationNumber,
+      description,
+    });
+  }, [description, name, registrationNumber, userId, website]);
+
+  const markTouched = (field: CompanyField) => {
+    setTouchedFields((current) => ({ ...current, [field]: true }));
+  };
 
   if (companyQuery.isLoading) {
     return <LoadingPage />;
@@ -43,6 +130,15 @@ export function CompanyCreationPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
+    setTouchedFields({
+      name: true,
+      website: true,
+      registrationNumber: true,
+    });
+
+    if (!isFormValid) {
+      return;
+    }
 
     try {
       await createCompanyMutation.mutateAsync({
@@ -51,6 +147,9 @@ export function CompanyCreationPage() {
         registrationNumber: registrationNumber.trim(),
         description: description.trim() || undefined,
       });
+      if (userId) {
+        companyDraftsByUser.delete(userId);
+      }
       navigate("/recruiter", { replace: true });
     } catch (error) {
       if (error instanceof Error && isDuplicateCompanyError(error)) {
@@ -97,47 +196,102 @@ export function CompanyCreationPage() {
 
         <form
           className="mt-8 space-y-5 rounded-xl border border-border bg-white p-6 shadow-sm sm:p-8"
+          noValidate
           onSubmit={handleSubmit}
         >
           <label className="block text-sm font-semibold">
             Company name
             <input
+              aria-describedby={
+                touchedFields.name && fieldErrors.name
+                  ? "company-name-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(
+                touchedFields.name && fieldErrors.name,
+              )}
               autoComplete="organization"
               className={inputClassName}
               maxLength={160}
               name="name"
+              onBlur={() => markTouched("name")}
               onChange={(event) => setName(event.target.value)}
               required
               type="text"
               value={name}
             />
+            {touchedFields.name && fieldErrors.name ? (
+              <span
+                className="mt-1.5 block text-sm font-normal text-red-700"
+                id="company-name-error"
+              >
+                {fieldErrors.name}
+              </span>
+            ) : null}
           </label>
 
           <label className="block text-sm font-semibold">
             Website
             <input
+              aria-describedby={
+                touchedFields.website && fieldErrors.website
+                  ? "company-website-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(
+                touchedFields.website && fieldErrors.website,
+              )}
               autoComplete="url"
               className={inputClassName}
               name="website"
+              onBlur={() => markTouched("website")}
               onChange={(event) => setWebsite(event.target.value)}
               placeholder="https://example.ca"
               required
               type="url"
               value={website}
             />
+            {touchedFields.website && fieldErrors.website ? (
+              <span
+                className="mt-1.5 block text-sm font-normal text-red-700"
+                id="company-website-error"
+              >
+                {fieldErrors.website}
+              </span>
+            ) : null}
           </label>
 
           <label className="block text-sm font-semibold">
             Registration number
             <input
+              aria-describedby={
+                touchedFields.registrationNumber &&
+                fieldErrors.registrationNumber
+                  ? "company-registration-number-error"
+                  : undefined
+              }
+              aria-invalid={Boolean(
+                touchedFields.registrationNumber &&
+                  fieldErrors.registrationNumber,
+              )}
               className={inputClassName}
               maxLength={100}
               name="registrationNumber"
+              onBlur={() => markTouched("registrationNumber")}
               onChange={(event) => setRegistrationNumber(event.target.value)}
               required
               type="text"
               value={registrationNumber}
             />
+            {touchedFields.registrationNumber &&
+            fieldErrors.registrationNumber ? (
+              <span
+                className="mt-1.5 block text-sm font-normal text-red-700"
+                id="company-registration-number-error"
+              >
+                {fieldErrors.registrationNumber}
+              </span>
+            ) : null}
           </label>
 
           <label className="block text-sm font-semibold">
@@ -164,7 +318,9 @@ export function CompanyCreationPage() {
           <button
             className={primaryButtonClassName}
             disabled={
-              createCompanyMutation.isPending || companyQuery.isError
+              !isFormValid ||
+              createCompanyMutation.isPending ||
+              companyQuery.isError
             }
             type="submit"
           >
