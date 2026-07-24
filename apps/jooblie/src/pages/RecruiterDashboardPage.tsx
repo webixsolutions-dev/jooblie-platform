@@ -44,7 +44,10 @@ export function RecruiterDashboardPage() {
         <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
           Start hiring on Jooblie
         </h1>
-        <div className="mt-8 rounded-xl border border-blue-200 bg-white p-6 shadow-sm sm:p-8">
+        <div
+          className="mt-8 rounded-xl border border-blue-200 bg-white p-6 shadow-sm sm:p-8"
+          id="company"
+        >
           <h2 className="text-2xl font-bold">
             Create your company profile first
           </h2>
@@ -67,7 +70,10 @@ export function RecruiterDashboardPage() {
 
   return (
     <Container className="py-10 sm:py-14">
-      <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+      <div
+        className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end"
+        id="company"
+      >
         <div>
           <p className="text-sm font-bold uppercase tracking-wider text-primary">
             Recruiter workspace
