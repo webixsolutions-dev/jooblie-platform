@@ -1,8 +1,8 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 3.2 (`@jooblie/core` query hooks) — COMPLETE
-- **Active slice:** Phase 4 — Jooblie app wiring (Jooblie-only launch sequence)
+- **Phase:** 4.2a (Jooblie shell + authentication) — COMPLETE
+- **Active slice:** Phase 4.2b — Jooblie job search + job detail
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Repo:** webixsolutions-dev/jooblie-platform
 
@@ -34,6 +34,24 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **Jooblie 4.2a is the launch shell and auth baseline.** `apps/jooblie` owns one
+  module-level QueryClient created by `@jooblie/core`, with provider order
+  `QueryClientProvider → BrowserRouter → AuthProvider → App`. The app must continue
+  importing auth state and exact-match role guards only from core. Tailwind is pinned
+  to v3.4.19 and consumes the shared `@jooblie/config` preset; do not introduce a
+  component library or a second styling system.
+- **Both signup outcomes are production contracts.** Supabase email confirmation is
+  currently disabled, so successful `signUp(...)` returns `signed_in` and routes
+  `job_seeker → /dashboard`, `recruiter → /recruiter`. Preserve the dormant
+  `confirmation_required → /auth/check-email` branch and `/auth/callback`; email
+  confirmation will be re-enabled post-launch. `/auth/check-email` is intentionally
+  static because core exposes no resend-confirmation method yet.
+- **Jooblie role routing is exact and return paths are local-only.** `/dashboard` and
+  `/saved` require `job_seeker`; `/recruiter` and recruiter job placeholders require
+  `recruiter`. Unauthenticated guards send users to `/login?next=<pathname>`, and login
+  accepts only same-origin paths beginning with one `/` (never `//`). Phase 4.2b should
+  replace the existing `/jobs` and `/jobs/:id` placeholders without changing these
+  auth boundaries or the SPA rewrite.
 - **Phase 3.2 is the complete launch query surface.** `@jooblie/core` now exports one
   QueryClient factory, one typed query-key registry, and the Jooblie/seeker/recruiter
   hooks for jobs, taxonomy, applications, saved jobs, companies, applicants, and
