@@ -9,9 +9,13 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { HomePage } from "./pages/HomePage";
 import { JobDetailPage } from "./pages/JobDetailPage";
 import { JobsPage } from "./pages/JobsPage";
+import { JobApplicantsPage } from "./pages/JobApplicantsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { CompanyCreationPage } from "./pages/CompanyCreationPage";
+import { RecruiterDashboardPage } from "./pages/RecruiterDashboardPage";
+import { RecruiterJobFormPage } from "./pages/RecruiterJobFormPage";
+import { RecruiterJobsPage } from "./pages/RecruiterJobsPage";
 import { SignupPage } from "./pages/SignupPage";
 
 export function App() {
@@ -46,10 +50,15 @@ export function App() {
             path="/recruiter"
             element={
               <RequireRole role="recruiter">
-                <PlaceholderPage
-                  title="Recruiter workspace"
-                  description="Your hiring overview will appear here."
-                />
+                <RecruiterDashboardPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/recruiter/company/new"
+            element={
+              <RequireRole role="recruiter">
+                <CompanyCreationPage />
               </RequireRole>
             }
           />
@@ -57,10 +66,7 @@ export function App() {
             path="/recruiter/jobs"
             element={
               <RequireRole role="recruiter">
-                <PlaceholderPage
-                  title="My jobs"
-                  description="Your job listings will appear here."
-                />
+                <RecruiterJobsPage />
               </RequireRole>
             }
           />
@@ -68,10 +74,15 @@ export function App() {
             path="/recruiter/jobs/new"
             element={
               <RequireRole role="recruiter">
-                <PlaceholderPage
-                  title="Post a job"
-                  description="Job posting is coming in a later launch slice."
-                />
+                <RecruiterJobFormPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/recruiter/jobs/:id/applicants"
+            element={
+              <RequireRole role="recruiter">
+                <JobApplicantsPage />
               </RequireRole>
             }
           />
