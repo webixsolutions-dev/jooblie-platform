@@ -69,6 +69,9 @@ importers:
       '@jooblie/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@tanstack/react-query':
+        specifier: 5.101.4
+        version: 5.101.4(react@19.2.7)
       react:
         specifier: 19.2.7
         version: 19.2.7
@@ -88,9 +91,18 @@ importers:
       '@vitejs/plugin-react':
         specifier: 6.0.3
         version: 6.0.3(vite@8.1.5(jiti@1.21.7))
+      autoprefixer:
+        specifier: 10.4.21
+        version: 10.4.21(postcss@8.5.19)
       eslint:
         specifier: 9.39.5
         version: 9.39.5(jiti@1.21.7)
+      postcss:
+        specifier: 8.5.19
+        version: 8.5.19
+      tailwindcss:
+        specifier: 3.4.19
+        version: 3.4.19
       typescript:
         specifier: 5.9.3
         version: 5.9.3
