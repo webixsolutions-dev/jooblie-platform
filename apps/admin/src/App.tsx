@@ -4,6 +4,7 @@ import { AdminGuard } from "./components/AdminGuard";
 import { AdminShell } from "./components/AdminShell";
 import { LoginPage } from "./pages/LoginPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { VerificationPage } from "./pages/VerificationPage";
 
 export function App() {
   return (
@@ -17,7 +18,7 @@ export function App() {
           />
           <Route
             path="verification"
-            element={<PlaceholderPage title="Verification" />}
+            element={<VerificationPage />}
           />
           <Route
             path="companies"
