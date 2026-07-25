@@ -6,15 +6,15 @@ A multi-site job board network built on a single shared Supabase backend.
 under the correct category. Six sector/audience partner sites each show only their own
 jobs. Visibility flows one way—partner → Jooblie, never the reverse (v1).
 
-| Site | Slug | Type |
-|---|---|---|
-| Jooblie | `jooblie` | aggregator |
-| Office Jobs Jobline | `office-jobs` | sector |
-| IT Jobs Jobline | `it-jobs` | sector |
-| Hospitality & Healthcare Jobline | `hospitality-healthcare` | sector |
-| Transportation & Farming Jobline | `transport-farming` | sector |
-| Aboriginal Jobline | `aboriginal` | audience |
-| New Comers Jobline | `newcomers` | audience |
+| Site                             | Slug                     | Type       |
+| -------------------------------- | ------------------------ | ---------- |
+| Jooblie                          | `jooblie`                | aggregator |
+| Office Jobs Jobline              | `office-jobs`            | sector     |
+| IT Jobs Jobline                  | `it-jobs`                | sector     |
+| Hospitality & Healthcare Jobline | `hospitality-healthcare` | sector     |
+| Transportation & Farming Jobline | `transport-farming`      | sector     |
+| Aboriginal Jobline               | `aboriginal`             | audience   |
+| New Comers Jobline               | `newcomers`              | audience   |
 
 Plus an eighth frontend: the admin app (no `sites` row—it reads unfiltered).
 
@@ -159,26 +159,26 @@ corrected by a new forward migration. There are no down migrations.
 
 ### Migration ledger
 
-| # | Contents |
-|---|---|
-| 0001 | extensions |
-| 0002 | enums |
-| 0003 | helper functions (`is_admin`, `is_company_member`, `is_suspended`, …) |
-| 0004 | reference tables: sectors, categories, sites |
-| 0005 | profiles + signup trigger (role whitelist) + email sync |
-| 0006 | companies, company_members, owner/resubmit triggers, admin RPCs |
-| 0007 | jobs, job_sites + visibility trigger, status machine, FTS, indexes |
+| #    | Contents                                                                 |
+| ---- | ------------------------------------------------------------------------ |
+| 0001 | extensions                                                               |
+| 0002 | enums                                                                    |
+| 0003 | helper functions (`is_admin`, `is_company_member`, `is_suspended`, …)    |
+| 0004 | reference tables: sectors, categories, sites                             |
+| 0005 | profiles + signup trigger (role whitelist) + email sync                  |
+| 0006 | companies, company_members, owner/resubmit triggers, admin RPCs          |
+| 0007 | jobs, job_sites + visibility trigger, status machine, FTS, indexes       |
 | 0008 | applications, saved_jobs, job_views, transition trigger, seeker read fix |
-| 0009 | notifications + deleted-recipient guard + fan-out triggers |
-| 0010 | append-only activity_log + audit triggers |
-| 0011 | seed: 5 sectors, 38 categories, 7 sites |
-| 0012 | storage buckets + access policies |
+| 0009 | notifications + deleted-recipient guard + fan-out triggers               |
+| 0010 | append-only activity_log + audit triggers                                |
+| 0011 | seed: 5 sectors, 38 categories, 7 sites                                  |
+| 0012 | storage buckets + access policies                                        |
 
 ## Testing
 
 Suites live in `supabase/tests/` as psql assertion scripts and run in sorted order with
 `ON_ERROR_STOP=1`; the runner discovers files dynamically. Each suite asserts both the
-positive and the negative case—what a role *can* do and what every other role *cannot*.
+positive and the negative case—what a role _can_ do and what every other role _cannot_.
 Security-critical protections are additionally proven by mutation testing: the
 protection is temporarily broken, the test is confirmed to fail, and the break is
 reverted.
@@ -204,13 +204,13 @@ approved.
 
 ## Documentation
 
-| File | What it answers |
-|---|---|
-| `docs/PRD.md` | What the product does; user stories; acceptance criteria |
-| `docs/SystemDesign.md` | Schema, RLS model, triggers, email, deletion, storage |
-| `docs/Architecture.md` | Repo strategy, package boundaries, deployment, CI/CD |
-| `docs/Rules.md` | Normative workflow rules for humans and agents |
-| `docs/Phases.md` | The build plan, slice by slice |
-| `AGENTS_GUIDE.md` | Current slice, live invariants, deferred items |
+| File                   | What it answers                                          |
+| ---------------------- | -------------------------------------------------------- |
+| `docs/PRD.md`          | What the product does; user stories; acceptance criteria |
+| `docs/SystemDesign.md` | Schema, RLS model, triggers, email, deletion, storage    |
+| `docs/Architecture.md` | Repo strategy, package boundaries, deployment, CI/CD     |
+| `docs/Rules.md`        | Normative workflow rules for humans and agents           |
+| `docs/Phases.md`       | The build plan, slice by slice                           |
+| `AGENTS_GUIDE.md`      | Current slice, live invariants, deferred items           |
 
 Read `AGENTS_GUIDE.md` first—it carries the working state between sessions.

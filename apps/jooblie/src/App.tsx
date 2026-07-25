@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { Layout } from "./components/Layout";
+import { PublicLayout } from "./components/PublicLayout";
 import { RequireRole } from "./components/RequireRole";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 import { CheckEmailPage } from "./pages/CheckEmailPage";
@@ -23,12 +24,14 @@ export function App() {
   return (
     <ErrorBoundary>
       <Routes>
-        <Route element={<Layout />}>
+        <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:id" element={<JobDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+        </Route>
+        <Route element={<Layout />}>
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/auth/check-email" element={<CheckEmailPage />} />
           <Route path="*" element={<NotFoundPage />} />
