@@ -1,8 +1,10 @@
 # AGENTS_GUIDE — Jooblie Platform
 
 ## Current State
-- **Phase:** 4.2c (Jooblie recruiter flows) — COMPLETE
-- **Active slice:** Production deployment
+- **Phase:** 4.5 (Admin app)
+- **Active slice:** Admin explorers — Slice B next (scope pending Hasham handoff)
+- **Completed admin increments:** Slice 1 auth + shell; Slice 2 verification queue;
+  Slice A explorer foundation + Companies explorer
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Repo:** webixsolutions-dev/jooblie-platform
 
@@ -34,6 +36,16 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **Admin explorer foundation is app-local and reusable for Slices B/C.**
+  `apps/admin` owns `ExplorerTable`, `ExplorerFilters`, and
+  `ExplorerPagination`, plus the `["admin", resource, "explorer",
+  appliedFilters, page, sort]` query-key convention. Explorers query through
+  raw `getSupabaseClient()` calls with server-side filters, exact counts, and
+  25-row ranges; they never route through core's site-scoped hooks. Company
+  suspension uses only `admin_set_company_status(...)`, and successful
+  mutations invalidate the Companies explorer and Activity prefix. Keep future
+  explorer queries/components on this path; `@jooblie/ui` extraction remains
+  out of scope for the current admin sprint.
 - **Jooblie 4.2a is the launch shell and auth baseline.** `apps/jooblie` owns one
   module-level QueryClient created by `@jooblie/core`, with provider order
   `QueryClientProvider → BrowserRouter → AuthProvider → App`. The app must continue

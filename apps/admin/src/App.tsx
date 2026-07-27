@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AdminGuard } from "./components/AdminGuard";
 import { AdminShell } from "./components/AdminShell";
+import { CompaniesPage } from "./pages/CompaniesPage";
 import { LoginPage } from "./pages/LoginPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { VerificationPage } from "./pages/VerificationPage";
@@ -22,7 +23,7 @@ export function App() {
           />
           <Route
             path="companies"
-            element={<PlaceholderPage title="Companies" />}
+            element={<CompaniesPage />}
           />
           <Route
             path="jobs"
