@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+import logoUrl from "../assets/logo.png";
 import { Container } from "./Container";
 
 const footerLinkClass =
@@ -11,10 +12,10 @@ export function PublicFooter() {
       <Container className="grid gap-10 py-10 sm:grid-cols-2 md:grid-cols-[minmax(0,2fr)_1fr_1fr] md:py-12">
         <div className="max-w-lg">
           <Link
-            className="rounded text-2xl font-bold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-brandNavy"
+            className="inline-block rounded outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-brandNavy"
             to="/"
           >
-            Jooblie
+            <img alt="Jooblie" className="h-10 w-auto" src={logoUrl} />
           </Link>
           <p className="mt-3 text-sm leading-6 text-white/75">
             Search jobs from Jooblie and our Canadian partner network — all in

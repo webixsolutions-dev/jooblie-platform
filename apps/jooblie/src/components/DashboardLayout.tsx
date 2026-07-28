@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useAuth, type SignUpRole } from "@jooblie/core";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import logoUrl from "../assets/logo.png";
+
 type DashboardLayoutProps = {
   readonly role: SignUpRole;
 };
@@ -89,8 +91,8 @@ export function DashboardLayout({ role }: DashboardLayoutProps) {
     <div className="min-h-screen bg-background md:grid md:grid-cols-[17rem_minmax(0,1fr)]">
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between gap-4 bg-brandNavy px-4 text-white shadow-sm md:hidden">
         <div className="min-w-0">
-          <Link className="text-xl font-bold tracking-tight" to="/">
-            Jooblie
+          <Link className="inline-block" to="/">
+            <img alt="Jooblie" className="h-8 w-auto" src={logoUrl} />
           </Link>
           <p className="truncate text-xs text-blue-100">{displayName}</p>
         </div>
@@ -112,8 +114,8 @@ export function DashboardLayout({ role }: DashboardLayoutProps) {
         id="dashboard-sidebar"
       >
         <div className="hidden md:block">
-          <Link className="text-2xl font-bold tracking-tight" to="/">
-            Jooblie
+          <Link className="inline-block" to="/">
+            <img alt="Jooblie" className="h-10 w-auto" src={logoUrl} />
           </Link>
           <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-blue-200">
             {roleLabel}
