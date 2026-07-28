@@ -2,12 +2,13 @@
 
 ## Current State
 - **Phase:** 4.5 (Admin app)
-- **Active slice:** Admin is code-side deploy-ready; awaiting Hasham's Vercel
-  project creation (31 July DoD)
+- **Active slice:** Admin dashboard stats next.
 - **Completed admin increments:** Slice 1 auth + shell; Slice 2 verification queue;
   Slice A explorer foundation + Companies explorer; Slice B Jobs + Users explorers;
   Slice C Applications explorer + Activity browser
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
+- **Completed brand follow-up:** Jooblie and admin logo/favicons are wired from
+  their app-local static assets.
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
