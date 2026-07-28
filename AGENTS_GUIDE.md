@@ -2,8 +2,8 @@
 
 ## Current State
 - **Phase:** 4.5 (Admin app)
-- **Active slice:** About/Contact public pages complete; next → Companies
-  directory (needs public-read investigation).
+- **Active slice:** Jooblie public pages complete, including the dynamic
+  Companies directory; next → test-data cleanup / remaining 31 July DoD checks.
 - **Completed admin increments:** Slice 1 auth + shell; Slice 2 verification queue;
   Slice A explorer foundation + Companies explorer; Slice B Jobs + Users explorers;
   Slice C Applications explorer + Activity browser
@@ -79,11 +79,15 @@
   importing auth state and exact-match role guards only from core. Tailwind is pinned
   to v3.4.19 and consumes the shared `@jooblie/config` preset; do not introduce a
   component library or a second styling system.
-- **Jooblie About and Contact public pages are complete.** Both use the shared
-  `PublicLayout`, existing Tailwind tokens, and editable placeholder content
-  blocks. The Contact form is visual-only and sends no data. The next public
-  slice is the Companies directory, which requires a public-read investigation
-  before implementation.
+- **Jooblie public pages are complete.** About, Contact, and the dynamic
+  Companies directory use the shared `PublicLayout` and existing Tailwind
+  tokens. The directory reads through `@jooblie/core`, selects only the six
+  anon-granted company columns for logged-out visitors, and uses an
+  authenticated-only lifecycle-column read plus a client guard to remove the
+  additive recruiter/admin RLS rows. Active job counts are batched for the
+  visible company IDs, and the existing `CompanyLogo` public-URL/initials
+  fallback is reused. A narrow public verified-company view/RPC remains
+  optional post-launch hardening; no migration was added for the launch slice.
 - **Both signup outcomes are production contracts.** Supabase email confirmation is
   currently disabled, so successful `signUp(...)` returns `signed_in` and routes
   `job_seeker → /dashboard`, `recruiter → /recruiter`. Preserve the dormant
