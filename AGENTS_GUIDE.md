@@ -354,3 +354,13 @@
   3. Adding `hashhaam` as the production required reviewer.
   4. Confirming direct push to `main` is rejected after protection is enabled.
 - CI workflow changes are R4-risky. Hasham provided explicit proceed approval; the reviewed change is published in draft PR #1 and requires the mandatory second-human review before merge.
+
+
+
+HOSTING (interim): Vercel is the interim host for build + client-testing (Jooblie live;
+admin deploying to its own Vercel project). VPS + nginx migration happens post-
+stabilization — Architecture §3 remains the target topology. Deferred, not abandoned.
+
+DEFERRED GAP — SEO/prerender: JobPosting JSON-LD + Google-for-Jobs indexing needs
+SSR/prerender, which the VPS design (Architecture §3, SystemDesign §9.2) was to provide.
+NOT a launch blocker; tied to the VPS migration. Do not lose.
