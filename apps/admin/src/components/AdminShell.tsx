@@ -9,6 +9,7 @@ import logoUrl from "../assets/logo.png";
 import { useAdminSignOut } from "../hooks/useAdminSignOut";
 
 const navigation = [
+  { label: "Dashboard", to: "/" },
   { label: "Verification", to: "/verification" },
   { label: "Companies", to: "/companies" },
   { label: "Jobs", to: "/jobs" },
