@@ -8,6 +8,7 @@ import { RequireRole } from "./components/RequireRole";
 import { AboutPage } from "./pages/AboutPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 import { CheckEmailPage } from "./pages/CheckEmailPage";
+import { CompaniesDirectoryPage } from "./pages/CompaniesDirectoryPage";
 import { ContactPage } from "./pages/ContactPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { HomePage } from "./pages/HomePage";
@@ -29,6 +30,7 @@ export function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/companies" element={<CompaniesDirectoryPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:id" element={<JobDetailPage />} />

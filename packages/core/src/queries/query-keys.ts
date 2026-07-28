@@ -14,7 +14,21 @@ export type JobListFilters = {
   readonly pageSize: number;
 };
 
+export type CompanyDirectoryFilters = {
+  readonly search?: string;
+  readonly page: number;
+  readonly pageSize: number;
+};
+
 export const queryKeys = {
+  companies: {
+    all: ["companies"] as const,
+    directories: () => ["companies", "directory"] as const,
+    directory: (
+      siteId: number | null,
+      filters: CompanyDirectoryFilters,
+    ) => ["companies", "directory", siteId, filters] as const,
+  },
   jobs: {
     all: ["jobs"] as const,
     lists: () => ["jobs", "list"] as const,

@@ -20,6 +20,13 @@ export {
   type UpdateApplicationStatusInput,
 } from "./company";
 export {
+  useCompaniesDirectory,
+  type CompaniesDirectoryResult,
+  type CompanyDirectoryRow,
+  type PublicCompany,
+  type UseCompaniesDirectoryParams,
+} from "./companies";
+export {
   useJob,
   useJobs,
   type JobDetailRow,

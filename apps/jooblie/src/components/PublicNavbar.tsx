@@ -36,6 +36,13 @@ const navItemClass = (
   return standardLinkClass({ isActive });
 };
 
+const publicNavItems: readonly NavItem[] = [
+  { label: "Jobs", to: "/jobs" },
+  { label: "Companies", to: "/companies" },
+  { label: "About", to: "/about" },
+  { label: "Contact", to: "/contact" },
+];
+
 export function PublicNavbar() {
   const { initialized, user, role, signOut } = useAuth();
   const location = useLocation();
@@ -115,6 +122,17 @@ export function PublicNavbar() {
     </NavLink>
   );
 
+  const renderPublicNavItem = (item: NavItem) => (
+    <NavLink
+      className={standardLinkClass}
+      key={item.to}
+      onClick={closeMenu}
+      to={item.to}
+    >
+      {item.label}
+    </NavLink>
+  );
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/15 bg-brandNavy text-white shadow-sm">
       <nav aria-label="Public navigation">
@@ -131,27 +149,9 @@ export function PublicNavbar() {
                 src={logoUrl}
               />
             </Link>
-            <NavLink
-              className={standardLinkClass}
-              onClick={closeMenu}
-              to="/jobs"
-            >
-              Jobs
-            </NavLink>
-            <NavLink
-              className={standardLinkClass}
-              onClick={closeMenu}
-              to="/about"
-            >
-              About
-            </NavLink>
-            <NavLink
-              className={standardLinkClass}
-              onClick={closeMenu}
-              to="/contact"
-            >
-              Contact
-            </NavLink>
+            <div className="hidden items-center gap-2 md:flex">
+              {publicNavItems.map(renderPublicNavItem)}
+            </div>
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
@@ -194,6 +194,8 @@ export function PublicNavbar() {
             id="public-mobile-menu"
           >
             <Container className="flex min-w-0 flex-col gap-1 py-3">
+              {publicNavItems.map(renderPublicNavItem)}
+              <div className="my-2 border-t border-white/15" />
               {navItems.map(renderNavItem)}
               {showSignOut ? (
                 <button
