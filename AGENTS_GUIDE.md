@@ -2,7 +2,8 @@
 
 ## Current State
 - **Phase:** 4.5 (Admin app)
-- **Active slice:** Deploy admin to its own Vercel project (31 July DoD)
+- **Active slice:** Admin is code-side deploy-ready; awaiting Hasham's Vercel
+  project creation (31 July DoD)
 - **Completed admin increments:** Slice 1 auth + shell; Slice 2 verification queue;
   Slice A explorer foundation + Companies explorer; Slice B Jobs + Users explorers;
   Slice C Applications explorer + Activity browser
@@ -58,8 +59,9 @@
   Activity browser supports entity-history deep links. Application résumé
   access is on-demand only through a 60-second signed URL backed by the
   existing admin storage policy; raw storage paths are never rendered. The
-  next admin increment is deployment to the admin app's own Vercel project for
-  the 31 July DoD.
+  admin app is code-side deploy-ready with its SPA rewrite and documented
+  frontend environment contract. It is awaiting Hasham's Vercel project
+  creation for the 31 July DoD.
 - **Jooblie 4.2a is the launch shell and auth baseline.** `apps/jooblie` owns one
   module-level QueryClient created by `@jooblie/core`, with provider order
   `QueryClientProvider → BrowserRouter → AuthProvider → App`. The app must continue
