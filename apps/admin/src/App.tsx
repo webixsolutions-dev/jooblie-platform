@@ -5,9 +5,9 @@ import { AdminShell } from "./components/AdminShell";
 import { ActivityPage } from "./pages/ActivityPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { CompaniesPage } from "./pages/CompaniesPage";
+import { DashboardPage } from "./pages/DashboardPage";
 import { JobsPage } from "./pages/JobsPage";
 import { LoginPage } from "./pages/LoginPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { UsersPage } from "./pages/UsersPage";
 import { VerificationPage } from "./pages/VerificationPage";
 
@@ -17,10 +17,7 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<AdminGuard />}>
         <Route element={<AdminShell />}>
-          <Route
-            index
-            element={<PlaceholderPage title="Dashboard" />}
-          />
+          <Route index element={<DashboardPage />} />
           <Route
             path="verification"
             element={<VerificationPage />}

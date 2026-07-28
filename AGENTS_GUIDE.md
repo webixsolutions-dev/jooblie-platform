@@ -2,13 +2,15 @@
 
 ## Current State
 - **Phase:** 4.5 (Admin app)
-- **Active slice:** Admin dashboard stats next.
+- **Active slice:** Jooblie test-data cleanup / public pages next (31 July DoD).
 - **Completed admin increments:** Slice 1 auth + shell; Slice 2 verification queue;
   Slice A explorer foundation + Companies explorer; Slice B Jobs + Users explorers;
   Slice C Applications explorer + Activity browser
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Completed brand follow-up:** Jooblie and admin logo/favicons are wired from
   their app-local static assets.
+- **Completed admin app:** Dashboard stats overview; the admin app is fully
+  complete.
 - **Repo:** webixsolutions-dev/jooblie-platform
 
 ## Design Documents (read before any work)
@@ -39,6 +41,13 @@
 - pnpm gen:types — regenerate DB types (Phase 1+)
 
 ## In-Flight Notes
+- **The admin app is fully complete.** The dashboard reads exact, head-only
+  counts for non-deleted companies, jobs, and applications through the raw
+  admin Supabase client path. It shows company verification as an SVG donut,
+  job statuses as horizontal bars, and applications grouped into submitted,
+  in-review, and closed-out bars. No aggregate RPC, view, SQL, mutation, or
+  charting dependency was introduced. Next work is Jooblie test-data cleanup /
+  public pages for the 31 July DoD.
 - **Admin explorer foundation and dashboard explorer scope are complete.**
   `apps/admin` owns `ExplorerTable`, `ExplorerFilters`, and
   `ExplorerPagination`, plus the `["admin", resource, "explorer",
