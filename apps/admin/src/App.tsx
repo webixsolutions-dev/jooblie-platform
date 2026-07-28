@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AdminGuard } from "./components/AdminGuard";
 import { AdminShell } from "./components/AdminShell";
+import { ActivityPage } from "./pages/ActivityPage";
+import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { CompaniesPage } from "./pages/CompaniesPage";
 import { JobsPage } from "./pages/JobsPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -33,7 +35,7 @@ export function App() {
           />
           <Route
             path="applications"
-            element={<PlaceholderPage title="Applications" />}
+            element={<ApplicationsPage />}
           />
           <Route
             path="users"
@@ -41,7 +43,7 @@ export function App() {
           />
           <Route
             path="activity"
-            element={<PlaceholderPage title="Activity" />}
+            element={<ActivityPage />}
           />
         </Route>
       </Route>
