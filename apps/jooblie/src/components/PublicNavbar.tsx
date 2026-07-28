@@ -138,6 +138,20 @@ export function PublicNavbar() {
             >
               Jobs
             </NavLink>
+            <NavLink
+              className={standardLinkClass}
+              onClick={closeMenu}
+              to="/about"
+            >
+              About
+            </NavLink>
+            <NavLink
+              className={standardLinkClass}
+              onClick={closeMenu}
+              to="/contact"
+            >
+              Contact
+            </NavLink>
           </div>
 
           <div className="hidden items-center gap-2 md:flex">

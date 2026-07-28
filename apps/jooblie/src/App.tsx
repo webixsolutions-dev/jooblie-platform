@@ -5,8 +5,10 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import { Layout } from "./components/Layout";
 import { PublicLayout } from "./components/PublicLayout";
 import { RequireRole } from "./components/RequireRole";
+import { AboutPage } from "./pages/AboutPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 import { CheckEmailPage } from "./pages/CheckEmailPage";
+import { ContactPage } from "./pages/ContactPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { HomePage } from "./pages/HomePage";
 import { JobDetailPage } from "./pages/JobDetailPage";
@@ -26,6 +28,8 @@ export function App() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:id" element={<JobDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
