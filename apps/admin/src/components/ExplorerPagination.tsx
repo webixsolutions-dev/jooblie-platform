@@ -17,8 +17,12 @@ export function ExplorerPagination({
     return null;
   }
 
-  const pageCount = Math.ceil(totalRows / pageSize);
-  const firstRow = page * pageSize + 1;
+  const pageCount = Math.max(1, Math.ceil(totalRows / pageSize));
+  const normalizedPage = Number.isFinite(page)
+    ? Math.max(0, Math.floor(page))
+    : 0;
+  const safePage = Math.min(normalizedPage, pageCount - 1);
+  const firstRow = safePage * pageSize + 1;
   const lastRow = Math.min(firstRow + pageSize - 1, totalRows);
 
   return (
@@ -36,20 +40,20 @@ export function ExplorerPagination({
       </p>
       <div className="flex items-center gap-3">
         <p className="text-sm text-muted">
-          Page {page + 1} of {pageCount}
+          Page {safePage + 1} of {pageCount}
         </p>
         <button
           className="rounded-md border border-border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={disabled || page === 0}
-          onClick={() => onPageChange(page - 1)}
+          disabled={disabled || safePage === 0}
+          onClick={() => onPageChange(safePage - 1)}
           type="button"
         >
           Previous
         </button>
         <button
           className="rounded-md border border-border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={disabled || page + 1 >= pageCount}
-          onClick={() => onPageChange(page + 1)}
+          disabled={disabled || safePage + 1 >= pageCount}
+          onClick={() => onPageChange(safePage + 1)}
           type="button"
         >
           Next

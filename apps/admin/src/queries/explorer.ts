@@ -19,7 +19,10 @@ export function getExplorerQueryPrefix(resource: string) {
 }
 
 export function getExplorerRange(page: number) {
-  const from = Math.max(0, page) * EXPLORER_PAGE_SIZE;
+  const safePage = Number.isFinite(page)
+    ? Math.max(0, Math.floor(page))
+    : 0;
+  const from = safePage * EXPLORER_PAGE_SIZE;
 
   return {
     from,
