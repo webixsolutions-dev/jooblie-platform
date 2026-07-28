@@ -9,7 +9,7 @@ const footerLinkClass =
 export function PublicFooter() {
   return (
     <footer className="bg-brandNavy text-white">
-      <Container className="grid gap-10 py-10 sm:grid-cols-2 md:grid-cols-[minmax(0,2fr)_1fr_1fr] md:py-12">
+      <Container className="grid gap-10 py-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr] lg:py-12">
         <div className="max-w-lg">
           <Link
             className="inline-block rounded outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-brandNavy"
@@ -65,6 +65,24 @@ export function PublicFooter() {
             <li>
               <Link className={footerLinkClass} to="/login">
                 Recruiter sign in
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        <nav aria-labelledby="company-footer-heading">
+          <h2 className="text-sm font-bold" id="company-footer-heading">
+            Company
+          </h2>
+          <ul className="mt-4 space-y-3">
+            <li>
+              <Link className={footerLinkClass} to="/about">
+                About Jooblie
+              </Link>
+            </li>
+            <li>
+              <Link className={footerLinkClass} to="/contact">
+                Contact us
               </Link>
             </li>
           </ul>

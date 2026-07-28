@@ -2,7 +2,8 @@
 
 ## Current State
 - **Phase:** 4.5 (Admin app)
-- **Active slice:** Jooblie test-data cleanup / public pages next (31 July DoD).
+- **Active slice:** About/Contact public pages complete; next → Companies
+  directory (needs public-read investigation).
 - **Completed admin increments:** Slice 1 auth + shell; Slice 2 verification queue;
   Slice A explorer foundation + Companies explorer; Slice B Jobs + Users explorers;
   Slice C Applications explorer + Activity browser
@@ -78,6 +79,11 @@
   importing auth state and exact-match role guards only from core. Tailwind is pinned
   to v3.4.19 and consumes the shared `@jooblie/config` preset; do not introduce a
   component library or a second styling system.
+- **Jooblie About and Contact public pages are complete.** Both use the shared
+  `PublicLayout`, existing Tailwind tokens, and editable placeholder content
+  blocks. The Contact form is visual-only and sends no data. The next public
+  slice is the Companies directory, which requires a public-read investigation
+  before implementation.
 - **Both signup outcomes are production contracts.** Supabase email confirmation is
   currently disabled, so successful `signUp(...)` returns `signed_in` and routes
   `job_seeker → /dashboard`, `recruiter → /recruiter`. Preserve the dormant
