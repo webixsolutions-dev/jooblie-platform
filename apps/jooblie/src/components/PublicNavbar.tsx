@@ -7,6 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import logoUrl from "../assets/logo.png";
 import { Container } from "./Container";
 
 interface NavItem {
@@ -120,11 +121,15 @@ export function PublicNavbar() {
         <Container className="flex min-h-16 min-w-0 items-center justify-between gap-3 py-2">
           <div className="flex min-w-0 items-center gap-3 sm:gap-5">
             <Link
-              className="shrink-0 rounded text-2xl font-bold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-brandNavy"
+              className="shrink-0 rounded outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-brandNavy"
               onClick={closeMenu}
               to="/"
             >
-              Jooblie
+              <img
+                alt="Jooblie"
+                className="h-10 w-auto"
+                src={logoUrl}
+              />
             </Link>
             <NavLink
               className={standardLinkClass}

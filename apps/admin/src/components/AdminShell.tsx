@@ -5,6 +5,7 @@ import {
   Outlet,
 } from "react-router-dom";
 
+import logoUrl from "../assets/logo.png";
 import { useAdminSignOut } from "../hooks/useAdminSignOut";
 
 const navigation = [
@@ -28,9 +29,7 @@ export function AdminShell() {
           className="rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           to="/"
         >
-          <span className="block text-xs font-bold uppercase tracking-[0.2em] text-blue-300">
-            Jooblie
-          </span>
+          <img alt="Jooblie" className="h-10 w-auto" src={logoUrl} />
           <span className="mt-1 block text-xl font-semibold">Admin Console</span>
         </Link>
 
