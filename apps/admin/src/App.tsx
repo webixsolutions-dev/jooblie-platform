@@ -3,8 +3,10 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AdminGuard } from "./components/AdminGuard";
 import { AdminShell } from "./components/AdminShell";
 import { CompaniesPage } from "./pages/CompaniesPage";
+import { JobsPage } from "./pages/JobsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { UsersPage } from "./pages/UsersPage";
 import { VerificationPage } from "./pages/VerificationPage";
 
 export function App() {
@@ -27,7 +29,7 @@ export function App() {
           />
           <Route
             path="jobs"
-            element={<PlaceholderPage title="Jobs" />}
+            element={<JobsPage />}
           />
           <Route
             path="applications"
@@ -35,7 +37,7 @@ export function App() {
           />
           <Route
             path="users"
-            element={<PlaceholderPage title="Users" />}
+            element={<UsersPage />}
           />
           <Route
             path="activity"

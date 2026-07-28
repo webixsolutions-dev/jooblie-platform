@@ -2,9 +2,9 @@
 
 ## Current State
 - **Phase:** 4.5 (Admin app)
-- **Active slice:** Admin explorers — Slice B next (scope pending Hasham handoff)
+- **Active slice:** Admin explorers — Slice C next (Applications + Activity)
 - **Completed admin increments:** Slice 1 auth + shell; Slice 2 verification queue;
-  Slice A explorer foundation + Companies explorer
+  Slice A explorer foundation + Companies explorer; Slice B Jobs + Users explorers
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Repo:** webixsolutions-dev/jooblie-platform
 
@@ -46,6 +46,12 @@
   mutations invalidate the Companies explorer and Activity prefix. Keep future
   explorer queries/components on this path; `@jooblie/ui` extraction remains
   out of scope for the current admin sprint.
+- **Jobs and Users explorers reuse the Slice A foundation.** Both read-only
+  explorers consume the shared table, filters, pagination, range helper, and
+  query-key convention. They query `jobs` / `profiles` directly through the
+  app-local admin client path, resolve site labels from the core registry, and
+  introduce no mutations or privileged backend surface. Slice C should follow
+  the same foundation for Applications and Activity.
 - **Jooblie 4.2a is the launch shell and auth baseline.** `apps/jooblie` owns one
   module-level QueryClient created by `@jooblie/core`, with provider order
   `QueryClientProvider → BrowserRouter → AuthProvider → App`. The app must continue
