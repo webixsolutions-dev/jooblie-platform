@@ -14,12 +14,6 @@ const ABOUT_CONTENT = {
       browseJobs: "Browse Jobs",
       postJob: "Post a Job",
     },
-    featuredJob: {
-      eyebrow: "New opportunity",
-      title: "Operations Coordinator",
-      meta: "Toronto, ON · Full-time · Hybrid",
-      ariaLabel: "Illustrative job listing card",
-    },
   },
   purpose: {
     eyebrow: "Why we exist",
@@ -173,29 +167,12 @@ export function AboutPage() {
             </div>
           </div>
 
-          <div
-            aria-label={ABOUT_CONTENT.hero.featuredJob.ariaLabel}
-            className="relative isolate flex min-h-72 items-end overflow-hidden rounded-2xl border border-border bg-background p-6 sm:min-h-80 sm:p-8"
-          >
-            <div
-              aria-hidden="true"
-              className="absolute -right-10 -top-10 -z-10 size-44 rounded-full border-[2rem] border-primary/10"
+          <div className="relative min-h-72 overflow-hidden rounded-2xl border border-border sm:min-h-80">
+            <img
+              alt="Coworkers celebrating together in an office"
+              className="absolute inset-0 size-full object-cover"
+              src="/images/about-hero.jpg"
             />
-            <div
-              aria-hidden="true"
-              className="absolute left-8 top-10 -z-10 size-28 rotate-6 rounded-2xl bg-border/70"
-            />
-            <article className="w-full rounded-xl border border-border bg-white p-6 shadow-lg">
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary">
-                {ABOUT_CONTENT.hero.featuredJob.eyebrow}
-              </p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-brandNavy">
-                {ABOUT_CONTENT.hero.featuredJob.title}
-              </h2>
-              <p className="mt-2 text-sm text-muted">
-                {ABOUT_CONTENT.hero.featuredJob.meta}
-              </p>
-            </article>
           </div>
         </Container>
       </section>
