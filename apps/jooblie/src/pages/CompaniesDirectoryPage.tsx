@@ -133,8 +133,13 @@ export function CompaniesDirectoryPage() {
     <>
       <section
         aria-labelledby="companies-hero-heading"
-        className="border-b border-white/15 bg-brandNavy text-white"
+        className="relative isolate overflow-hidden border-b border-white/15 bg-brandNavy bg-cover bg-center text-white"
+        style={{ backgroundImage: "url('/images/companies-hero.jpg')" }}
       >
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-brandNavy/80"
+        />
         <Container className="py-16 sm:py-20 lg:py-24">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">

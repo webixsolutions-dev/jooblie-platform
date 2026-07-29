@@ -10,6 +10,9 @@
 - **Completed follow-up:** 1.8-slim — private resumes/company-assets storage
 - **Completed brand follow-up:** Jooblie and admin logo/favicons are wired from
   their app-local static assets.
+- **Completed public-page polish:** Companies now mirrors the Home hero's
+  full-background image and flat navy scrim treatment; About uses a responsive
+  image-only hero panel in place of the illustrative placeholder job card.
 - **Completed admin app:** Dashboard stats overview; the admin app is fully
   complete.
 - **Repo:** webixsolutions-dev/jooblie-platform
