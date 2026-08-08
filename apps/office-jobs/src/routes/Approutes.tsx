@@ -4,7 +4,7 @@ import Home from '../pages/Home'
 import Employers from '../pages/Employers'
 // import PostJob from '../pages/PostJob'
 import AboutUs from '../pages/AboutUs'
-// import ContactUs from '../pages/ContactUs'
+import ContactUs from '../pages/ContactUs'
 // import SignIn from '../pages/auth/SignIn'
 // import SignUp from '../pages/auth/SignUp'
 // import Pricing from '../components/employers/Pricing'
@@ -23,8 +23,8 @@ function AppRoutes() {
             <Route path="/employers" element={<Employers />} />
             {/* <Route path="/post-a-job" element={<PostJob />} />*/}
             <Route path="/about-us" element={<AboutUs />} />
-            {/*   <Route path="/contact-us" element={<ContactUs />} />
-      <Route path="/signin" element={<SignIn />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            {/*   <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/pricing" element={<Pricing />} /> */}
         </Routes>
