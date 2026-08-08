@@ -202,7 +202,7 @@ export default function ContactHero() {
                 </div>
               )}
 
-              <form className="mt-5 space-y-4" onSubmit={handleSubmit} noValidate>
+              <form className="mt-5 space-y-4" onSubmit={handleSubmit} >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="mb-1 block text-xs font-semibold text-slate-700 sm:text-sm">
